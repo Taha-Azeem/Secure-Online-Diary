@@ -16,11 +16,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+<<<<<<< HEAD
+=======
     function isAdmin() {
       return isSignedIn() &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+>>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
@@ -68,6 +71,13 @@ service cloud.firestore {
 
     // 1. User Profiles
     match /users/{userId} {
+<<<<<<< HEAD
+      allow get: if isOwner(userId) || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user'; // Prevent self-elevation
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().role == existing().role && // Immortality for roles
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'lastLogin', 'biometricsEnabled']);
+=======
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
       allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user'; // Prevent self-elevation
@@ -85,12 +95,18 @@ service cloud.firestore {
                       incoming().lastLogin == existing().lastLogin &&
                       incoming().diff(existing()).affectedKeys().hasOnly(['role'])
                     );
+>>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 2. Diary Entries
     match /entries/{entryId} {
+<<<<<<< HEAD
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+=======
       allow get: if isOwner(existing().ownerId) || isAdmin();
       allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
+>>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
       allow create: if isSignedIn() && isValidEntry(incoming()) && isServerTimestamp(incoming().createdAt);
       allow update: if isOwner(existing().ownerId) && isValidEntry(incoming()) && 
                     incoming().ownerId == existing().ownerId &&
@@ -102,14 +118,22 @@ service cloud.firestore {
     // 3. Activity Logs
     match /activityLogs/{logId} {
       allow create: if isSignedIn() && isValidActivityLog(incoming()) && isServerTimestamp(incoming().timestamp);
+<<<<<<< HEAD
+      allow get: if isSignedIn() && (isOwner(existing().userId) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+=======
       allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
       allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+>>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 4. Security Logs
     match /securityLogs/{logId} {
       allow create: if true; // Allow logging even for unauthenticated (e.g. failed login attempts)
+<<<<<<< HEAD
+      allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+=======
       allow read: if isAdmin();
+>>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 5. Notifications

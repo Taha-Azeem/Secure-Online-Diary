@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
-import { addDoc, collection, deleteDoc, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 
@@ -50,14 +49,12 @@ export default function ViewEntry() {
             return;
           }
           setEntry({ id: docSnap.id, ...data });
-<<<<<<< HEAD
-          
           if (vaultKey) {
             const t = EncryptionService.decrypt(data.titleEncrypted, vaultKey);
             const c = EncryptionService.decrypt(data.contentEncrypted, vaultKey);
-            setDecrypted({ 
-              title: t || 'Decryption Error', 
-              content: c || 'Failed to decrypt content with the current Master Access Key. Secure integrity check mismatch.' 
+            setDecrypted({
+              title: t || 'Decryption Error',
+              content: c || 'Failed to decrypt content with the current Master Access Key. Secure integrity check mismatch.',
             });
           }
         } else {
@@ -97,8 +94,7 @@ export default function ViewEntry() {
 
   const handleDelete = async () => {
     if (!entryId || !window.confirm('CRITICAL: Permanent record purge requested. Proceed?')) return;
-<<<<<<< HEAD
-    
+
     try {
       await deleteDoc(doc(db, 'entries', entryId));
       await addDoc(collection(db, 'activityLogs'), {

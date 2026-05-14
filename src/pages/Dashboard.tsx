@@ -54,6 +54,8 @@ export default function Dashboard() {
       setEntries(entryList);
       setLoading(false);
     }, (err) => {
+
+
       setLoading(false);
       handleFirestoreError(err, OperationType.GET, 'entries');
     });
