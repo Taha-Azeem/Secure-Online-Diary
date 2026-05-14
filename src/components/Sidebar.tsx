@@ -1,25 +1,56 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { 
-  LayoutDashboard, 
-  Lock, 
-  Key, 
-  History, 
-  Settings, 
-  HelpCircle, 
-  LogOut,
-  Users,
-  ShieldCheck,
-  Database,
+import {
   Bell,
-  FileText
+  BookOpen,
+  Database,
+  FileBarChart2,
+  FileKey,
+  FileText,
+  HelpCircle,
+  History,
+  LayoutDashboard,
+  Lock,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  Users,
+  WalletCards,
 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { useAuth } from '../context/AuthContext';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+type NavItem = {
+  name: string;
+  to: string;
+  icon: React.ReactNode;
+};
+
+function NavSection({ title, links }: { title: string; links: NavItem[] }) {
+  return (
+    <div className="space-y-3">
+      <p className="px-3 text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant/80">{title}</p>
+      <div className="space-y-2">
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === '/dashboard' || link.to === '/admin'}
+            className={({ isActive }) =>
+              [
+                'group grid min-h-14 grid-cols-[22px,1fr] items-center gap-3 rounded-2xl border px-3 py-3 transition-all duration-200',
+                isActive
+                  ? 'border-primary-fixed-dim/30 bg-primary-fixed-dim/10 text-on-surface shadow-[0_10px_30px_rgba(0,218,243,0.14)]'
+                  : 'border-transparent text-on-surface-variant hover:border-white/10 hover:bg-white/5 hover:text-on-surface',
+              ].join(' ')
+            }
+          >
+            <span className="flex shrink-0 items-center justify-center text-primary-fixed-dim">{link.icon}</span>
+            <span className="min-w-0 truncate text-sm font-semibold">{link.name}</span>
+          </NavLink>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Sidebar() {
@@ -33,83 +64,66 @@ export default function Sidebar() {
 
   const isAdmin = profile?.role === 'admin';
 
-  const userLinks = [
-    { name: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Encrypted Journals', to: '/entries', icon: <Lock size={20} /> },
-    { name: 'Security Keys', to: '/keys', icon: <Key size={20} /> },
-    { name: 'Access Logs', to: '/logs', icon: <History size={20} /> },
-    { name: 'Settings', to: '/settings', icon: <Settings size={20} /> },
+  const userLinks: NavItem[] = [
+    { name: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard size={18} /> },
+    { name: 'Encrypted Journals', to: '/entries', icon: <BookOpen size={18} /> },
+    { name: 'Vault Center', to: '/vault', icon: <WalletCards size={18} /> },
+    { name: 'Security Keys', to: '/keys', icon: <FileKey size={18} /> },
+    { name: 'Access Logs', to: '/logs', icon: <History size={18} /> },
+    { name: 'Settings', to: '/settings', icon: <Settings size={18} /> },
   ];
 
-  const adminLinks = [
-    { name: 'Admin Dashboard', to: '/admin', icon: <LayoutDashboard size={20} /> },
-    { name: 'User Management', to: '/admin/users', icon: <Users size={20} /> },
-    { name: 'Diary Monitoring', to: '/admin/diaries', icon: <Lock size={20} /> },
-    { name: 'Security Center', to: '/admin/security', icon: <ShieldCheck size={20} /> },
-    { name: 'Activity Logs', to: '/admin/logs', icon: <FileText size={20} /> },
-    { name: 'Database Management', to: '/admin/database', icon: <Database size={20} /> },
-    { name: 'Notifications', to: '/admin/notifications', icon: <Bell size={20} /> },
-    { name: 'Reports', to: '/admin/reports', icon: <FileText size={20} /> },
-    { name: 'Admin Settings', to: '/admin/settings', icon: <Settings size={20} /> },
+  const adminLinks: NavItem[] = [
+    { name: 'Admin Dashboard', to: '/admin', icon: <LayoutDashboard size={18} /> },
+    { name: 'User Management', to: '/admin/users', icon: <Users size={18} /> },
+    { name: 'Diary Monitoring', to: '/admin/diaries', icon: <BookOpen size={18} /> },
+    { name: 'Security Center', to: '/admin/security', icon: <ShieldCheck size={18} /> },
+    { name: 'Activity Logs', to: '/admin/logs', icon: <FileText size={18} /> },
+    { name: 'Database Control', to: '/admin/database', icon: <Database size={18} /> },
+    { name: 'Notifications', to: '/admin/notifications', icon: <Bell size={18} /> },
+    { name: 'Reports', to: '/admin/reports', icon: <FileBarChart2 size={18} /> },
+    { name: 'Admin Settings', to: '/admin/settings', icon: <Settings size={18} /> },
   ];
-
-  const links = isAdmin ? adminLinks : userLinks;
 
   return (
-    <aside className="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface-container-low/80 backdrop-blur-2xl border-r border-outline-variant/30 shadow-[20px_0_40px_rgba(112,0,255,0.15)] pt-24 pb-gutter-md px-4 z-40">
-      <div className="mb-layer-gap">
-        <div className="flex items-center gap-3 px-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary-fixed-dim to-secondary-container p-[2px]">
-            <div className="w-full h-full rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden">
-              <img 
-                src="https://api.dicebear.com/7.x/bottts/svg?seed=Felix" 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            </div>
+    <aside className="hidden md:flex md:fixed md:left-0 md:top-0 md:z-40 md:h-screen md:w-72 md:flex-col md:border-r md:border-outline-variant/25 md:bg-surface-container-low/75 md:px-5 md:pb-5 md:pt-24 md:backdrop-blur-2xl">
+      <div className="mb-6 rounded-[1.75rem] border border-white/10 bg-[linear-gradient(160deg,rgba(0,218,243,0.12),rgba(34,42,59,0.92),rgba(112,0,255,0.18))] p-4 shadow-2xl">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary-fixed-dim/25 bg-surface-container-high">
+            <Lock size={22} className="text-primary-fixed-dim" />
           </div>
-          <div>
-            <h3 className="font-label-md text-label-md text-primary-fixed-dim truncate w-32">{profile?.displayName || 'Agent'}</h3>
-            <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
-              {isAdmin ? 'System Admin' : 'Protocol Active'}
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-bold text-on-surface">{profile?.displayName || 'Agent'}</h3>
+            <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-primary-fixed-dim">
+              {isAdmin ? 'Admin Clearance' : 'Private Vault'}
             </p>
           </div>
         </div>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-2 overflow-y-auto no-scrollbar">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === '/dashboard' || link.to === '/admin'}
-            className={({ isActive }) => cn(
-              "flex items-center gap-3 p-3 rounded-lg font-label-md text-label-md transition-all transition-all duration-200",
-              isActive 
-                ? "bg-secondary-container/20 text-secondary border-l-4 border-secondary shadow-lg shadow-secondary/10" 
-                : "text-on-surface-variant hover:bg-surface-variant/20 hover:text-on-surface"
-            )}
-          >
-            {link.icon}
-            {link.name}
-          </NavLink>
-        ))}
+      <nav className="flex-1 space-y-6 overflow-y-auto pr-1 no-scrollbar">
+        <NavSection title="Workspace" links={userLinks} />
+        {isAdmin ? <NavSection title="Administration" links={adminLinks} /> : null}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-2 pt-4 border-t border-outline-variant/30">
-        <NavLink 
+      <div className="mt-6 space-y-2 border-t border-outline-variant/25 pt-5">
+        <NavLink
           to="/support"
-          className="flex items-center gap-3 text-on-surface-variant p-3 hover:bg-surface-variant/20 rounded-lg font-label-md text-label-md transition-all"
+          className="grid min-h-14 grid-cols-[22px,1fr] items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-on-surface-variant transition-all hover:border-white/10 hover:bg-white/5 hover:text-on-surface"
         >
-          <HelpCircle size={20} />
-          Support
+          <span className="flex items-center justify-center text-primary-fixed-dim">
+            <HelpCircle size={18} />
+          </span>
+          <span className="truncate text-sm font-semibold">Support</span>
         </NavLink>
-        <button 
+        <button
           onClick={handleLogout}
-          className="flex items-center gap-3 text-error p-3 hover:bg-error/10 rounded-lg font-label-md text-label-md transition-all w-full text-left"
+          className="grid min-h-14 w-full grid-cols-[22px,1fr] items-center gap-3 rounded-2xl border border-error/15 bg-error/5 px-3 py-3 text-left text-error transition-all hover:bg-error/10"
         >
-          <LogOut size={20} />
-          Sign Out
+          <span className="flex items-center justify-center">
+            <LogOut size={18} />
+          </span>
+          <span className="truncate text-sm font-semibold">Sign Out</span>
         </button>
       </div>
     </aside>

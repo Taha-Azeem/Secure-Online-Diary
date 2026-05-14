@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -23,10 +23,28 @@ export default function NewEntry() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const navigate = useNavigate();
 
-  const handleSeal = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const injectSnippet = (prefix: string, suffix = '', placeholder = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart ?? content.length;
+    const end = textarea.selectionEnd ?? content.length;
+    const selected = content.slice(start, end) || placeholder;
+    const nextValue = `${content.slice(0, start)}${prefix}${selected}${suffix}${content.slice(end)}`;
+
+    setContent(nextValue);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const cursor = start + prefix.length + selected.length + suffix.length;
+      textarea.setSelectionRange(cursor, cursor);
+    });
+  };
+
+  const handleSeal = async () => {
     if (!user || !vaultKey || !title || !content) return;
 
     setLoading(true);
@@ -109,7 +127,7 @@ export default function NewEntry() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Text Editor Section */}
         <section className="lg:col-span-8 relative">
-          <div className="bg-surface-container-low/40 backdrop-blur-3xl border border-white/10 rounded-3xl p-6 md:p-8 overflow-hidden shadow-2xl">
+          <div className="glass-panel rounded-3xl p-6 md:p-8 overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between mb-8">
               <div className="flex gap-3">
                 <div className="h-3 w-3 rounded-full bg-error shadow-[0_0_8px_#ffb4ab]"></div>
@@ -123,29 +141,45 @@ export default function NewEntry() {
                   placeholder="entry_title.cipher"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="bg-transparent border-none outline-none text-xs font-black text-on-surface-variant uppercase tracking-widest w-40 placeholder:opacity-30"
+                  className="w-48 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40"
                 />
               </div>
             </div>
             
             {/* Recessed Editor Surface */}
-            <div className="bg-surface-container-lowest/80 rounded-2xl p-6 md:p-10 min-h-[500px] relative shadow-inner border border-white/5">
+            <div className="inset-input rounded-2xl p-6 md:p-10 min-h-[500px] relative border border-white/5">
               <textarea 
+                ref={textareaRef}
                 placeholder="Start typing encrypted thought-stream..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="w-full h-full min-h-[440px] bg-transparent border-none focus:ring-0 text-lg md:text-xl text-primary/80 placeholder:text-white/10 resize-none leading-relaxed font-medium"
+                className="w-full h-full min-h-[440px] bg-transparent border-none font-[var(--font-body)] text-lg leading-9 text-on-surface placeholder:text-on-surface-variant/35 focus:outline-none focus:ring-0 resize-none md:text-[20px]"
               />
               
               {/* Floating Editor Tools */}
               <div className="absolute bottom-8 right-8 flex gap-4">
-                <button className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => injectSnippet('**', '**', 'bold text')}
+                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
+                  title="Insert bold text"
+                >
                   <Bold size={24} />
                 </button>
-                <button className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => injectSnippet('\n[Attachment] ', '', 'linked evidence')}
+                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
+                  title="Insert attachment note"
+                >
                   <Paperclip size={24} />
                 </button>
-                <button className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10">
+                <button
+                  type="button"
+                  onClick={() => injectSnippet('\n```txt\n', '\n```\n', 'secured snippet')}
+                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
+                  title="Insert code block"
+                >
                   <Code size={24} />
                 </button>
               </div>
@@ -158,12 +192,14 @@ export default function NewEntry() {
               </div>
               <div className="flex gap-4 w-full md:w-auto">
                 <button 
+                  type="button"
                   onClick={() => navigate('/dashboard')}
                   className="flex-1 md:flex-initial px-8 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 transition-all uppercase tracking-widest"
                 >
                   Discard
                 </button>
                 <button 
+                  type="button"
                   onClick={handleSeal}
                   disabled={loading || !title || !content}
                   className="flex-1 md:flex-initial px-10 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.3)] transition-all transform hover:-translate-y-1 uppercase tracking-widest disabled:opacity-50"
@@ -221,7 +257,11 @@ export default function NewEntry() {
                 <p className="text-xs font-medium text-on-surface-variant">0 trusted nodes linked</p>
               </div>
             </div>
-            <button className="w-full py-4 rounded-2xl bg-surface-variant/40 border border-white/5 font-black text-xs uppercase tracking-widest text-on-surface hover:bg-surface-variant/60 transition-all flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/keys')}
+              className="w-full py-4 rounded-2xl bg-surface-variant/40 border border-white/5 font-black text-xs uppercase tracking-widest text-on-surface hover:bg-surface-variant/60 transition-all flex items-center justify-center gap-3"
+            >
               <Rocket size={18} />
               Authorize Access Key
             </button>

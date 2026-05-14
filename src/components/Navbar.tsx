@@ -1,45 +1,64 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = profile?.role === 'admin';
+  const dashboardPath = isAdmin ? '/admin' : '/dashboard';
 
   return (
-    <nav className="fixed top-0 z-50 w-full bg-surface/30 backdrop-blur-xl border-b border-outline-variant/50 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-      <div className="flex justify-between items-center w-full px-margin-lg max-w-container-max-width mx-auto py-4">
-        <Link to="/" className="font-headline-xl text-headline-xl font-extrabold text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,218,243,0.5)]">
-          CipherDiary
+    <nav className="fixed top-0 z-50 w-full border-b border-outline-variant/30 bg-background/70 backdrop-blur-2xl">
+      <div className="mx-auto flex w-full max-w-container-max-width items-center justify-between gap-4 px-4 py-4 md:px-margin-lg">
+        <Link to="/" className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary-fixed-dim/25 bg-primary-fixed-dim/10 text-primary-fixed-dim shadow-[0_0_25px_rgba(0,218,243,0.15)]">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <div className="text-lg font-black tracking-tight text-on-surface md:text-xl">CipherDiary</div>
+            <div className="hidden text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant sm:block">
+              Secure Journaling Platform
+            </div>
+          </div>
         </Link>
-        <div className="hidden md:flex gap-gutter-md">
-          <Link className="font-title-md text-title-md text-on-surface-variant hover:text-primary transition-all duration-300" to="/security">Security</Link>
-          <Link className="font-title-md text-title-md text-on-surface-variant hover:text-primary transition-all duration-300" to="/vault">Vault</Link>
-          <Link className="font-title-md text-title-md text-on-surface-variant hover:text-primary transition-all duration-300" to="/pricing">Pricing</Link>
-          <Link className="font-title-md text-title-md text-on-surface-variant hover:text-primary transition-all duration-300" to="/about">About</Link>
+
+        <div className="hidden items-center gap-6 lg:flex">
+          <Link className="text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-fixed-dim" to="/security">Security</Link>
+          <Link className="text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-fixed-dim" to="/vault">Vault</Link>
+          <Link className="text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-fixed-dim" to="/pricing">Pricing</Link>
+          <Link className="text-sm font-semibold text-on-surface-variant transition-colors hover:text-primary-fixed-dim" to="/about">About</Link>
         </div>
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-3">
+          {isAdmin && user ? (
+            <span className="hidden rounded-full border border-secondary/25 bg-secondary-container/15 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-secondary md:inline-flex">
+              Admin Mode
+            </span>
+          ) : null}
+
           {!user ? (
             <>
-              <button 
+              <button
                 onClick={() => navigate('/login')}
-                className="font-label-md text-label-md text-primary-fixed-dim px-4 py-2 border border-primary-fixed-dim rounded-lg hover:bg-primary-fixed-dim/10 transition-all font-bold"
+                className="rounded-xl border border-primary-fixed-dim/30 px-4 py-2 text-sm font-bold text-primary-fixed-dim transition-all hover:bg-primary-fixed-dim/10"
               >
                 Login
               </button>
-              <button 
+              <button
                 onClick={() => navigate('/register')}
-                className="font-label-md text-label-md bg-primary-container text-on-primary-container px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 transition-all font-bold"
+                className="rounded-xl bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
               >
                 Initialize Vault
               </button>
             </>
           ) : (
-            <button 
-              onClick={() => navigate('/dashboard')}
-              className="font-label-md text-label-md bg-primary-container text-on-primary-container px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.4)] active:scale-95 transition-all font-bold"
+            <button
+              onClick={() => navigate(dashboardPath)}
+              className="rounded-xl bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
             >
-              Dashboard
+              {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
             </button>
           )}
         </div>

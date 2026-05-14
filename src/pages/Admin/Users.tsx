@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { 
-  Users as UsersIcon, 
   Search, 
-  Edit, 
-  Trash2, 
   ShieldAlert,
   ShieldCheck,
   MoreVertical,
-  Activity,
-  Lock,
-  Unlock,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -92,59 +85,67 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-white/5 transition-all group">
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl overflow-hidden border border-primary-fixed-dim/20 shadow-[0_0_15px_rgba(0,218,243,0.1)]">
-                        <img 
-                          src={`https://api.dicebear.com/7.x/bottts/svg?seed=${u.displayName}`} 
-                          alt="Avatar" 
-                          className="w-full h-full object-cover" 
-                        />
+              {filteredUsers.length > 0 ? (
+                filteredUsers.map((u) => (
+                  <tr key={u.id} className="hover:bg-white/5 transition-all group">
+                    <td className="px-10 py-6">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-primary-fixed-dim/20 shadow-[0_0_15px_rgba(0,218,243,0.1)]">
+                          <img 
+                            src={`https://api.dicebear.com/7.x/bottts/svg?seed=${u.displayName}`} 
+                            alt="Avatar" 
+                            className="w-full h-full object-cover" 
+                          />
+                        </div>
+                        <div>
+                          <p className="text-lg font-bold text-on-surface">{u.displayName || 'Unnamed User'}</p>
+                          <p className="text-[10px] text-on-surface-variant font-mono uppercase tracking-widest">UID: {u.id?.slice(0, 10).toUpperCase()}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-lg font-bold text-on-surface">{u.displayName}</p>
-                        <p className="text-[10px] text-on-surface-variant font-mono uppercase tracking-widest">UID: {u.id?.slice(0, 10).toUpperCase()}</p>
+                    </td>
+                    <td className="px-10 py-6 text-sm font-bold text-on-surface-variant">{u.email || 'No email'}</td>
+                    <td className="px-10 py-6">
+                      <span className={cn(
+                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-lg leading-none",
+                        u.role === 'admin' 
+                          ? "bg-secondary-container/20 text-secondary border-secondary/30 shadow-secondary/10" 
+                          : "bg-primary-container/20 text-primary-fixed-dim border-primary-fixed-dim/30 shadow-primary-fixed-dim/10"
+                      )}>
+                        {u.role || 'user'}
+                      </span>
+                    </td>
+                    <td className="px-10 py-6">
+                      <div className="flex items-center gap-3">
+                        <span className="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim shadow-[0_0_10px_#00daf3] animate-pulse"></span>
+                        <span className="text-on-surface font-black text-xs uppercase tracking-widest">{u.lastLogin ? 'Active' : 'Provisioned'}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-10 py-6 text-sm font-bold text-on-surface-variant">{u.email}</td>
-                  <td className="px-10 py-6">
-                    <span className={cn(
-                      "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-lg leading-none",
-                      u.role === 'admin' 
-                        ? "bg-secondary-container/20 text-secondary border-secondary/30 shadow-secondary/10" 
-                        : "bg-primary-container/20 text-primary-fixed-dim border-primary-fixed-dim/30 shadow-primary-fixed-dim/10"
-                    )}>
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-3">
-                      <span className="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim shadow-[0_0_10px_#00daf3] animate-pulse"></span>
-                      <span className="text-on-surface font-black text-xs uppercase tracking-widest">Active</span>
-                    </div>
-                  </td>
-                  <td className="px-10 py-6 font-mono text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
-                    {u.lastLogin ? format(u.lastLogin.toDate(), 'yyyy.MM.dd p') : 'N/A'}
-                  </td>
-                  <td className="px-10 py-6">
-                    <div className="flex justify-center gap-2">
-                      <button 
-                         onClick={() => handleToggleStatus(u.id, u.role)}
-                         className="p-3 rounded-xl hover:bg-white/10 text-primary-fixed-dim transition-all group/btn" 
-                         title="Elevate/Demote"
-                      >
-                         {u.role === 'admin' ? <ShieldAlert size={20} /> : <ShieldCheck size={20} />}
-                      </button>
-                      <button className="p-3 rounded-xl hover:bg-white/10 text-on-surface-variant transition-all">
-                        <MoreVertical size={20} />
-                      </button>
-                    </div>
+                    </td>
+                    <td className="px-10 py-6 font-mono text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
+                      {u.lastLogin ? format(u.lastLogin.toDate(), 'yyyy.MM.dd p') : 'N/A'}
+                    </td>
+                    <td className="px-10 py-6">
+                      <div className="flex justify-center gap-2">
+                        <button 
+                           onClick={() => handleToggleStatus(u.id, u.role)}
+                           className="p-3 rounded-xl hover:bg-white/10 text-primary-fixed-dim transition-all group/btn" 
+                           title="Elevate/Demote"
+                        >
+                           {u.role === 'admin' ? <ShieldAlert size={20} /> : <ShieldCheck size={20} />}
+                        </button>
+                        <button className="p-3 rounded-xl hover:bg-white/10 text-on-surface-variant transition-all" title="More actions">
+                          <MoreVertical size={20} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-10 py-20 text-center text-sm font-medium text-on-surface-variant">
+                    {loading ? 'Loading user records...' : 'No users matched this search yet.'}
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

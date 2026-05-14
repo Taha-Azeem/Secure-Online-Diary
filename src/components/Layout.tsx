@@ -1,58 +1,106 @@
 import React from 'react';
+import { Link, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Navigate, Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 
-export function Layout() {
-  const { user, profile, loading } = useAuth();
+function LoadingScreen({ label }: { label: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background text-primary-fixed-dim">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-fixed-dim border-t-transparent" />
+        <p className="font-mono text-sm animate-pulse">{label}</p>
+      </div>
+    </div>
+  );
+}
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center text-primary-fixed-dim">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary-fixed-dim border-t-transparent rounded-full animate-spin"></div>
-          <p className="font-mono text-sm animate-pulse">SYNCHRONIZING WITH VAULT...</p>
+function BackgroundGlow() {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      <div className="absolute left-[-8rem] top-24 h-80 w-80 rounded-full bg-primary-fixed-dim/10 blur-[120px]" />
+      <div className="absolute bottom-[-5rem] right-[-3rem] h-96 w-96 rounded-full bg-secondary-container/20 blur-[140px]" />
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{ backgroundImage: 'radial-gradient(rgba(219,226,249,0.8) 1px, transparent 0)', backgroundSize: '34px 34px' }}
+      />
+    </div>
+  );
+}
+
+function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: boolean }) {
+  return (
+    <footer className={`border-t border-outline-variant/30 bg-surface-container-high/80 ${withSidebarOffset ? 'md:ml-72' : ''}`}>
+      <div className="mx-auto flex max-w-container-max-width flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between md:px-margin-lg">
+        <div className="space-y-1">
+          <div className="text-lg font-bold text-on-surface">CipherDiary</div>
+          <div className="text-sm text-on-surface-variant">© 2026 CipherDiary Secure Systems. AES-256 encrypted journaling.</div>
+        </div>
+        <div className="flex flex-wrap gap-6 text-sm font-semibold text-on-surface-variant">
+          <Link className="transition-colors hover:text-primary-fixed-dim" to="/security">Security</Link>
+          <Link className="transition-colors hover:text-primary-fixed-dim" to="/pricing">Pricing</Link>
+          <Link className="transition-colors hover:text-primary-fixed-dim" to="/about">About</Link>
         </div>
       </div>
-    );
+    </footer>
+  );
+}
+
+function AppShell() {
+  return (
+    <div className="min-h-screen bg-background text-on-surface">
+      <BackgroundGlow />
+      <Navbar />
+      <Sidebar />
+      <main className="min-h-screen overflow-x-hidden pb-10 pt-24 md:ml-72">
+        <Outlet />
+      </main>
+      <AppFooter withSidebarOffset />
+    </div>
+  );
+}
+
+export function PublicLayout() {
+  return (
+    <div className="min-h-screen bg-background text-on-surface">
+      <BackgroundGlow />
+      <Navbar />
+      <main className="min-h-screen overflow-x-hidden pb-10 pt-24">
+        <Outlet />
+      </main>
+      <AppFooter />
+    </div>
+  );
+}
+
+export function Layout() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingScreen label="SYNCHRONIZING WITH VAULT..." />;
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  return (
-    <div className="min-h-screen bg-surface text-on-surface">
-      <Navbar />
-      <Sidebar />
-      <main className="md:ml-64 pt-24 min-h-screen overflow-x-hidden">
-        <Outlet />
-      </main>
-      <footer className="md:ml-64 w-full py-layer-gap bg-surface-container-highest border-t border-outline-variant mt-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center px-margin-lg max-w-container-max-width mx-auto gap-4">
-          <div className="flex flex-col items-center md:items-start gap-1">
-            <div className="font-title-md text-title-md text-on-surface">CipherDiary</div>
-            <div className="font-label-sm text-label-sm text-on-surface-variant">© 2026 CipherDiary Secure Systems. AES-256 Bit Encrypted.</div>
-          </div>
-          <div className="flex gap-gutter-md">
-            <a className="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary underline decoration-secondary" href="#">Privacy Protocol</a>
-            <a className="font-label-sm text-label-sm text-on-surface-variant hover:text-secondary underline decoration-secondary" href="#">Terms of Service</a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+  return <AppShell />;
 }
 
 export function AdminLayout() {
-  const { profile, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return <LoadingScreen label="VERIFYING ADMIN CLEARANCE..." />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
   if (profile?.role !== 'admin') {
     return <Navigate to="/forbidden" replace />;
   }
 
-  return <Layout />;
+  return <AppShell />;
 }

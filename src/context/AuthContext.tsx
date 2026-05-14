@@ -2,7 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { 
   onAuthStateChanged, 
   User as FirebaseUser,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  updateEmail as firebaseUpdateEmail,
+  updateProfile as firebaseUpdateAuthProfile
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
@@ -28,12 +30,28 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const VAULT_KEY_STORAGE = 'cipherdiary:vault-key';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [vaultKey, setVaultKey] = useState<string | null>(null);
+  const [vaultKey, setVaultKeyState] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return window.sessionStorage.getItem(VAULT_KEY_STORAGE);
+  });
+
+  const setVaultKey = (key: string | null) => {
+    setVaultKeyState(key);
+
+    if (typeof window === 'undefined') return;
+
+    if (key) {
+      window.sessionStorage.setItem(VAULT_KEY_STORAGE, key);
+    } else {
+      window.sessionStorage.removeItem(VAULT_KEY_STORAGE);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -72,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         setProfile(null);
+        setVaultKey(null);
       }
       
       setLoading(false);
@@ -82,12 +101,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     await firebaseSignOut(auth);
+    setVaultKey(null);
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
     const userDocRef = doc(db, 'users', user.uid);
     try {
+      if (typeof data.displayName === 'string' && data.displayName !== user.displayName) {
+        await firebaseUpdateAuthProfile(user, { displayName: data.displayName });
+      }
+
+      if (typeof data.email === 'string' && data.email !== user.email) {
+        await firebaseUpdateEmail(user, data.email);
+      }
+
       await updateDoc(userDocRef, data);
       setProfile(prev => prev ? { ...prev, ...data } : null);
     } catch (err) {

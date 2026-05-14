@@ -1,8 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Layout, AdminLayout } from './components/Layout';
-import { Lock, Key, History, Shield, Database } from 'lucide-react';
+import { Layout, AdminLayout, PublicLayout } from './components/Layout';
 
 // Base Pages
 import Landing from './pages/Landing';
@@ -11,6 +10,25 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import NewEntry from './pages/NewEntry';
 import ViewEntry from './pages/ViewEntry';
+import {
+  AboutPage,
+  AdminDatabasePage,
+  AdminDiariesPage,
+  AdminNotificationsPage,
+  AdminReportsPage,
+  AdminSecurityPage,
+  AdminSettingsPage,
+  EntriesOverview,
+  ForgotPasswordPage,
+  KeysPage,
+  PricingPage,
+  SecurityInfoPage,
+  SettingsPage,
+  SupportPage,
+  TermsPage,
+  UserLogsPage,
+  VaultPage,
+} from './pages/ModulePages';
 
 // Admin Pages
 import AdminDashboard from './pages/Admin/Dashboard';
@@ -26,30 +44,38 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/security" element={<SecurityInfoPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+          </Route>
 
           {/* User Routes (Protected) */}
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/entries" element={<Dashboard />} />
+            <Route path="/entries" element={<EntriesOverview />} />
             <Route path="/entries/new" element={<NewEntry />} />
             <Route path="/entries/:entryId" element={<ViewEntry />} />
-            <Route path="/settings" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Lock size={48} className="opacity-20"/><p>SECURE PROFILE COMMAND: MODULE OFFLINE</p></div>} />
-            <Route path="/vault" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Lock size={48} className="opacity-20"/><p>VAULT OVERVIEW: OFFLINE</p></div>} />
-            <Route path="/keys" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Key size={48} className="opacity-20"/><p>SECURITY KEYS: OFFLINE</p></div>} />
-            <Route path="/logs" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><History size={48} className="opacity-20"/><p>ACCESS LOGS: OFFLINE</p></div>} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/vault" element={<VaultPage />} />
+            <Route path="/keys" element={<KeysPage />} />
+            <Route path="/logs" element={<UserLogsPage />} />
+            <Route path="/support" element={<SupportPage />} />
           </Route>
 
           {/* Admin Routes (Security Check) */}
           <Route element={<AdminLayout />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/diaries" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Lock size={48} className="opacity-20"/><p>DIARY MONITORING: OFFLINE</p></div>} />
-            <Route path="/admin/security" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Shield size={48} className="opacity-20"/><p>SECURITY CENTER: OFFLINE</p></div>} />
+            <Route path="/admin/diaries" element={<AdminDiariesPage />} />
+            <Route path="/admin/security" element={<AdminSecurityPage />} />
             <Route path="/admin/logs" element={<AdminLogs />} />
-            <Route path="/admin/database" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em] flex flex-col items-center justify-center min-h-[60vh] gap-4"><Database size={48} className="opacity-20"/><p>DATABASE MANAGEMENT: OFFLINE</p></div>} />
-            <Route path="/admin/notifications" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em]">NOTIFICATIONS: OFFLINE</div>} />
-            <Route path="/admin/reports" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em]">REPORTS: OFFLINE</div>} />
-            <Route path="/admin/settings" element={<div className="p-12 text-on-surface-variant font-mono uppercase tracking-[0.3em]">ADMIN SETTINGS: OFFLINE</div>} />
+            <Route path="/admin/database" element={<AdminDatabasePage />} />
+            <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
+            <Route path="/admin/reports" element={<AdminReportsPage />} />
+            <Route path="/admin/settings" element={<AdminSettingsPage />} />
           </Route>
 
           <Route path="/forbidden" element={
