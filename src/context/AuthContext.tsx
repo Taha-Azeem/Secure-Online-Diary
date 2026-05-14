@@ -5,6 +5,7 @@ import {
   signOut as firebaseSignOut
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { auth, db } from '../lib/firebase';
 
 interface UserProfile {
@@ -41,29 +42,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (firebaseUser) {
         // Fetch user profile from Firestore
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          setProfile(userDoc.data() as UserProfile);
-          // Update last login
-          await updateDoc(userDocRef, {
-            lastLogin: serverTimestamp()
-          });
-        } else {
-          // Create default profile if it doesn't exist
-          const newProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName || 'Agent',
-            role: 'user', // Default role
-            biometricsEnabled: false
-          };
-          await setDoc(userDocRef, {
-            ...newProfile,
-            createdAt: serverTimestamp(),
-            lastLogin: serverTimestamp()
-          });
-          setProfile(newProfile);
+        try {
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            setProfile(userDoc.data() as UserProfile);
+            // Update last login
+            await updateDoc(userDocRef, {
+              lastLogin: serverTimestamp()
+            }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`));
+          } else {
+            // Create default profile if it doesn't exist
+            const newProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName || 'Agent',
+              role: 'user', // Default role
+              biometricsEnabled: false
+            };
+            await setDoc(userDocRef, {
+              ...newProfile,
+              createdAt: serverTimestamp(),
+              lastLogin: serverTimestamp()
+            }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${firebaseUser.uid}`));
+            setProfile(newProfile);
+          }
+        } catch (err) {
+          handleFirestoreError(err, OperationType.GET, `users/${firebaseUser.uid}`);
         }
       } else {
         setProfile(null);
@@ -82,8 +87,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
     const userDocRef = doc(db, 'users', user.uid);
-    await updateDoc(userDocRef, data);
-    setProfile(prev => prev ? { ...prev, ...data } : null);
+    try {
+      await updateDoc(userDocRef, data);
+      setProfile(prev => prev ? { ...prev, ...data } : null);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
+    }
   };
 
   return (

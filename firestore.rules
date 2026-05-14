@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- PRIMITIVES ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isServerTimestamp(field) {
+      return field == request.time;
+    }
+
+    // --- VALIDATION HELPERS ---
+
+    function isValidUser(data) {
+      return data.email is string && data.email.size() <= 255 &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.role in ['user', 'admin'] &&
+             data.keys().hasAll(['email', 'displayName', 'role', 'uid', 'createdAt', 'lastLogin', 'biometricsEnabled']) &&
+             data.keys().size() == 7;
+    }
+
+    function isValidEntry(data) {
+      return data.ownerId == request.auth.uid &&
+             data.titleEncrypted is string && data.titleEncrypted.size() <= 1000 &&
+             data.contentEncrypted is string && data.contentEncrypted.size() <= 100000 &&
+             data.category is string && data.category.size() <= 50 &&
+             data.securityLevel is string && data.securityLevel.size() <= 20 &&
+             data.keys().hasAll(['ownerId', 'titleEncrypted', 'contentEncrypted', 'createdAt', 'updatedAt', 'category', 'securityLevel']) &&
+             data.keys().size() == 7;
+    }
+
+    function isValidActivityLog(data) {
+      return data.userId == request.auth.uid &&
+             data.action is string && data.action.size() <= 100 &&
+             data.resource is string && data.resource.size() <= 255 &&
+             data.status is string && data.status.size() <= 20;
+    }
+
+    // --- COLLECTIONS ---
+
+    // 1. User Profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId) || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user'; // Prevent self-elevation
+      allow update: if isOwner(userId) && isValidUser(incoming()) && 
+                    incoming().role == existing().role && // Immortality for roles
+                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'lastLogin', 'biometricsEnabled']);
+    }
+
+    // 2. Diary Entries
+    match /entries/{entryId} {
+      allow get: if isOwner(existing().ownerId);
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidEntry(incoming()) && isServerTimestamp(incoming().createdAt);
+      allow update: if isOwner(existing().ownerId) && isValidEntry(incoming()) && 
+                    incoming().ownerId == existing().ownerId &&
+                    isServerTimestamp(incoming().updatedAt) &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['titleEncrypted', 'contentEncrypted', 'updatedAt', 'category', 'securityLevel']);
+      allow delete: if isOwner(existing().ownerId);
+    }
+
+    // 3. Activity Logs
+    match /activityLogs/{logId} {
+      allow create: if isSignedIn() && isValidActivityLog(incoming()) && isServerTimestamp(incoming().timestamp);
+      allow get: if isSignedIn() && (isOwner(existing().userId) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // 4. Security Logs
+    match /securityLogs/{logId} {
+      allow create: if true; // Allow logging even for unauthenticated (e.g. failed login attempts)
+      allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // 5. Notifications
+    match /notifications/{notificationId} {
+      allow read: if isOwner(existing().userId);
+      allow update: if isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+    }
+  }
+}

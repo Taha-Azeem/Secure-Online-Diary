@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { doc, getDoc, deleteDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { 
   Lock, 
@@ -32,26 +33,30 @@ export default function ViewEntry() {
     async function fetchEntry() {
       if (!entryId || !user) return;
       const docRef = doc(db, 'entries', entryId);
-      const docSnap = await getDoc(docRef);
+      try {
+        const docSnap = await getDoc(docRef);
 
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.ownerId !== user.uid) {
-           navigate('/forbidden');
-           return;
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.ownerId !== user.uid) {
+            navigate('/forbidden');
+            return;
+          }
+          setEntry({ id: docSnap.id, ...data });
+          
+          if (vaultKey) {
+            const t = EncryptionService.decrypt(data.titleEncrypted, vaultKey);
+            const c = EncryptionService.decrypt(data.contentEncrypted, vaultKey);
+            setDecrypted({ 
+              title: t || 'Decryption Error', 
+              content: c || 'Failed to decrypt content with the current Master Access Key. Secure integrity check mismatch.' 
+            });
+          }
+        } else {
+          navigate('/dashboard');
         }
-        setEntry({ id: docSnap.id, ...data });
-        
-        if (vaultKey) {
-          const t = EncryptionService.decrypt(data.titleEncrypted, vaultKey);
-          const c = EncryptionService.decrypt(data.contentEncrypted, vaultKey);
-          setDecrypted({ 
-            title: t || 'Decryption Error', 
-            content: c || 'Failed to decrypt content with the current Master Access Key. Secure integrity check mismatch.' 
-          });
-        }
-      } else {
-        navigate('/dashboard');
+      } catch (err) {
+        handleFirestoreError(err, OperationType.GET, `entries/${entryId}`);
       }
       setLoading(false);
     }
@@ -61,18 +66,24 @@ export default function ViewEntry() {
   const handleDelete = async () => {
     if (!entryId || !window.confirm('CRITICAL: Permanent record purge requested. Proceed?')) return;
     
-    await deleteDoc(doc(db, 'entries', entryId));
-    
-    // Log activity
-    await addDoc(collection(db, 'activityLogs'), {
-      userId: user?.uid,
-      action: 'Purged Record',
-      resource: `/diary/private/${entryId}`,
-      timestamp: serverTimestamp(),
-      status: 'DELETED'
-    });
+    try {
+      await deleteDoc(doc(db, 'entries', entryId));
+      
+      // Log activity
+      await addDoc(collection(db, 'activityLogs'), {
+        userId: user?.uid,
+        action: 'Purged Record',
+        resource: `/diary/private/${entryId}`,
+        timestamp: serverTimestamp(),
+        status: 'DELETED'
+      }).catch(err => {
+        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
+      });
 
-    navigate('/dashboard');
+      navigate('/dashboard');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `entries/${entryId}`);
+    }
   };
 
   if (loading) return (

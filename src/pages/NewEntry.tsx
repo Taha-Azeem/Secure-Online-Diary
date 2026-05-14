@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -41,6 +42,8 @@ export default function NewEntry() {
         updatedAt: serverTimestamp(),
         category: 'Personal',
         securityLevel: 'Tier-3'
+      }).catch(err => {
+        handleFirestoreError(err, OperationType.CREATE, 'entries');
       });
 
       // Log success
@@ -51,11 +54,14 @@ export default function NewEntry() {
         resource: '/diary/private',
         timestamp: serverTimestamp(),
         status: 'ENCRYPTED'
+      }).catch(err => {
+        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
       });
 
       navigate('/dashboard');
     } catch (err) {
       console.error(err);
+      // Main catch for the entire block if something throws elsewhere
       alert('Failed to seal entry. Encryption engine reported an error.');
     } finally {
       setLoading(false);

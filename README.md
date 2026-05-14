@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# CipherDiary - Secure Online Diary System
 
-# Run and deploy your AI Studio app
+## Project Overview
+CipherDiary is an advanced Information Security project designed to provide total digital sovereignty for personal journaling. It features a Zero-Knowledge Architecture where data is encrypted using military-grade AES-256 before being stored in the cloud.
 
-This contains everything you need to run your app locally.
+## Key Features
+- **Zero-Knowledge Encryption:** Diary entries are encrypted/decrypted locally. Your master key never touches the server.
+- **AES-256 Protocol:** Industry-standard encryption for entry titles and content.
+- **Secure Authentication:** Firebase-powered identity management.
+- **Admin Command Center:** Real-time monitoring of system integrity, activity logs, and security threats.
+- **Bento-style UI:** A high-tech, responsive design with glassmorphism aesthetics.
 
-View your app in AI Studio: https://ai.studio/apps/9e68f654-f6ef-4dd1-9dc5-6dbe05dd6054
+## Tech Stack
+- **Frontend:** React 19, TypeScript, Tailwind CSS
+- **Backend:** Firebase (Auth, Firestore)
+- **Security:** Crypto-JS (AES-256 GCM)
+- **Animations:** Motion (Framer Motion)
+- **Icons:** Lucide React & Material Symbols
 
-## Run Locally
+## Local Setup Instructions
+1. **Clone the repository**
+2. **Install Packages:**
+   ```bash
+   npm install
+   ```
+3. **Configure Firebase:**
+   Set up a Firebase project and ensure your configuration is linked in the source code.
+4. **Launch Dev Server:**
+   ```bash
+   npm run dev
+   ```
 
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Security Warning
+This project implements client-side encryption. If you lose your **Master Access Key**, the data in the vault becomes mathematically impossible to recover, as the server only stores the encrypted ciphertext.

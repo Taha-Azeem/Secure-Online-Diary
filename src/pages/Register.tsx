@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { Mail, Key, Rocket, ArrowRight, Shield, Ghost, UserPlus, AlertTriangle } from 'lucide-react';
 import { doc, setDoc, serverTimestamp, addDoc, collection } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -31,25 +32,35 @@ export default function Register() {
       await updateProfile(user, { displayName: formData.username });
 
       // Create user profile in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: formData.username,
-        role: formData.email.includes('admin') ? 'admin' : 'user', // Basic role logic
-        createdAt: serverTimestamp(),
-        biometricsEnabled: false,
-        lastLogin: serverTimestamp()
-      });
+      const userPath = `users/${user.uid}`;
+      try {
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          email: user.email,
+          displayName: formData.username,
+          role: formData.email.includes('admin') ? 'admin' : 'user',
+          createdAt: serverTimestamp(),
+          biometricsEnabled: false,
+          lastLogin: serverTimestamp()
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.WRITE, userPath);
+      }
 
       // Log activity
-      await addDoc(collection(db, 'activityLogs'), {
-        userId: user.uid,
-        userEmail: user.email,
-        action: 'Account Initialization',
-        resource: '/system/register',
-        timestamp: serverTimestamp(),
-        status: 'SUCCESS'
-      });
+      const logPath = 'activityLogs';
+      try {
+        await addDoc(collection(db, 'activityLogs'), {
+          userId: user.uid,
+          userEmail: user.email,
+          action: 'Account Initialization',
+          resource: '/system/register',
+          timestamp: serverTimestamp(),
+          status: 'SUCCESS'
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.CREATE, logPath);
+      }
 
       navigate('/dashboard');
     } catch (err: any) {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, where, orderBy, limit, onSnapshot, getDocs } from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { EncryptionService } from '../lib/encryption';
 import { 
@@ -48,12 +49,18 @@ export default function Dashboard() {
       });
       setEntries(entryList);
       setLoading(false);
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, 'entries');
     });
 
     // Also get total count
-    getDocs(query(collection(db, 'entries'), where('ownerId', '==', user.uid))).then(snap => {
-      setStats(prev => ({ ...prev, total: snap.size }));
-    });
+    getDocs(query(collection(db, 'entries'), where('ownerId', '==', user.uid)))
+      .then(snap => {
+        setStats(prev => ({ ...prev, total: snap.size }));
+      })
+      .catch(err => {
+        handleFirestoreError(err, OperationType.GET, 'entries');
+      });
 
     return () => unsubscribe();
   }, [user, vaultKey]);
