@@ -17,6 +17,12 @@ CipherDiary is an advanced Information Security project designed to provide tota
 - **Animations:** Motion (Framer Motion)
 - **Icons:** Lucide React & Material Symbols
 
+## 🌐 Live Deployment
+The application is automatically deployed to GitHub Pages. Access it here:
+**[CipherDiary Live](https://taha-azeem.github.io/Secure-Online-Diary---Information-security/)**
+
+> **Note:** The live version requires Firebase configuration for authentication and data storage.
+
 ## Local Setup Instructions
 1. **Clone the repository**
 2. **Install Packages:**
@@ -29,6 +35,18 @@ CipherDiary is an advanced Information Security project designed to provide tota
    ```bash
    npm run dev
    ```
+5. **Build for Production:**
+   ```bash
+   npm run build
+   ```
+
+## Deployment
+This project uses GitHub Actions for automated deployment to GitHub Pages. Every push to the `main` branch automatically:
+1. Installs dependencies
+2. Builds the React application
+3. Deploys to GitHub Pages
+
+The deployment workflow is defined in `.github/workflows/deploy.yml`.
 
 ## Security Warning
 This project implements client-side encryption. If you lose your **Master Access Key**, the data in the vault becomes mathematically impossible to recover, as the server only stores the encrypted ciphertext.
