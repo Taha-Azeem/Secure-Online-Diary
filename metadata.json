@@ -1,0 +1,6 @@
+{
+  "name": "CipherDiary - Secure Online Diary System",
+  "description": "An Information Security project featuring AES-256 encrypted journaling, secure authentication, and real-time security monitoring dashboards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

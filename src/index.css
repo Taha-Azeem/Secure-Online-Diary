@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-on-secondary: #3c0090;
+  --color-secondary: #d1bcff;
+  --color-primary-fixed-dim: #00daf3;
+  --color-surface: #0b1323;
+  --color-on-surface: #dbe2f9;
+  --color-on-surface-variant: #bac9cc;
+  --color-primary: #c3f5ff;
+  --color-surface-container: #181f30;
+  --color-surface-container-high: #222a3b;
+  --color-surface-container-low: #141b2c;
+  --color-surface-container-lowest: #060e1e;
+  --color-primary-container: #00e5ff;
+  --color-on-primary-container: #00626e;
+  --color-secondary-container: #7000ff;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-outline-variant: #3b494c;
+  --color-surface-bright: #31394b;
+  --color-surface-variant: #2d3546;
+  --color-background: #0b1323;
+  --color-on-background: #dbe2f9;
+  --color-tertiary-fixed-dim: #b7c7eb;
+  --color-tertiary: #e6ecff;
+  
+  --spacing-gutter-md: 24px;
+  --spacing-layer-gap: 32px;
+  --spacing-margin-lg: 48px;
+  --spacing-container-max-width: 1440px;
+}
+
+@layer base {
+  body {
+    background-color: #0b1323;
+    color: #dbe2f9;
+    font-family: var(--font-sans);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

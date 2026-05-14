@@ -1,0 +1,100 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and security preferences.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "biometricsEnabled": { "type": "boolean" },
+        "lastLogin": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "createdAt"]
+    },
+    "Entry": {
+      "title": "Diary Entry",
+      "description": "An encrypted diary entry stored in the vault.",
+      "type": "object",
+      "properties": {
+        "ownerId": { "type": "string" },
+        "titleEncrypted": { "type": "string" },
+        "contentEncrypted": { "type": "string" },
+        "category": { "type": "string" },
+        "securityLevel": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "iv": { "type": "string" },
+        "salt": { "type": "string" }
+      },
+      "required": ["ownerId", "titleEncrypted", "contentEncrypted", "createdAt"]
+    },
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "General user activity tracking.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "resource": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string" },
+        "ip": { "type": "string" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    },
+    "SecurityLog": {
+      "title": "Security Log",
+      "description": "Critical security events and threat monitoring.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["AUTH", "CRYPT", "VAULT", "NETWORK"] },
+        "description": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "severity": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "ip": { "type": "string" },
+        "userId": { "type": "string" }
+      },
+      "required": ["type", "description", "timestamp", "severity"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User and system notifications.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["unread", "read"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "priority": { "type": "string" }
+      },
+      "required": ["userId", "title", "message", "status", "timestamp"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles indexed by UID."
+    },
+    "entries/{entryId}": {
+      "schema": "Entry",
+      "description": "Diary entries indexed by unique entry ID."
+    },
+    "activityLogs/{logId}": {
+      "schema": "ActivityLog",
+      "description": "Global activity logs."
+    },
+    "securityLogs/{logId}": {
+      "schema": "SecurityLog",
+      "description": "Security-focused audit logs."
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Notifications for users."
+    }
+  }
+}
