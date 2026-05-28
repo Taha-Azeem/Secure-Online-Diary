@@ -28,6 +28,9 @@ import {
 } from 'lucide-react';
 import ModulePage from '../components/ModulePage';
 import { useAuth } from '../context/AuthContext';
+import PricingHero from '../components/PricingHero';
+import PricingTierCard from '../components/PricingTierCard';
+import StickyCTA from '../components/StickyCTA';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -512,55 +515,377 @@ export function SecurityInfoPage() {
   );
 }
 
+const PLAN_FEATURES = [
+  { label: 'AES-256 Encryption', free: true, pro: true, team: true, enterprise: true },
+  { label: 'Zero-Knowledge Architecture', free: true, pro: true, team: true, enterprise: true },
+  { label: 'TLS 1.3 in Transit', free: true, pro: true, team: true, enterprise: true },
+  { label: 'Multi-Factor Authentication', free: false, pro: true, team: true, enterprise: true },
+  { label: 'Multi-Device Sync', free: false, pro: true, team: true, enterprise: true },
+  { label: 'Audit Logs', free: false, pro: false, team: true, enterprise: true },
+  { label: 'Admin Dashboard', free: false, pro: false, team: true, enterprise: true },
+  { label: 'Team Management', free: false, pro: false, team: true, enterprise: true },
+  { label: 'Dedicated Support', free: false, pro: false, team: false, enterprise: true },
+  { label: 'Custom Compliance Certs', free: false, pro: false, team: false, enterprise: true },
+  { label: 'SLA Guarantee', free: false, pro: false, team: false, enterprise: true },
+];
+
 export function PricingPage() {
+  const plans = [
+    {
+      name: 'Free',
+      price: '$0',
+      period: 'forever',
+      description: 'Start journaling with military-grade encryption at no cost.',
+      icon: BookOpen,
+      accent: 'from-white/10 to-white/5',
+      border: 'border-white/10',
+      badge: null,
+      cta: 'Get Started Free',
+      featureKey: 'free' as const,
+    },
+    {
+      name: 'Pro',
+      price: '$12',
+      period: 'per month',
+      description: 'Multi-device sync, advanced encryption, and priority support.',
+      icon: Lock,
+      accent: 'from-cyan-500/20 to-violet-600/10',
+      border: 'border-cyan-500/30',
+      badge: 'Most Popular',
+      cta: 'Start Pro Trial',
+      featureKey: 'pro' as const,
+    },
+    {
+      name: 'Team',
+      price: '$39',
+      period: 'per month',
+      description: 'Full admin controls, audit logs, and team collaboration tools.',
+      icon: UserCog,
+      accent: 'from-violet-600/20 to-cyan-500/10',
+      border: 'border-violet-500/30',
+      badge: 'Best for Teams',
+      cta: 'Start Team Trial',
+      featureKey: 'team' as const,
+    },
+    {
+      name: 'Enterprise',
+      price: 'Custom',
+      period: 'contact us',
+      description: 'Zero-knowledge architecture, compliance certifications, and dedicated SLA.',
+      icon: ShieldCheck,
+      accent: 'from-amber-500/10 to-rose-500/10',
+      border: 'border-amber-500/20',
+      badge: 'Enterprise Grade',
+      cta: 'Contact Sales',
+      featureKey: 'enterprise' as const,
+    },
+  ];
+
   return (
-    <ModulePage
-      badge="Deployment Plans"
-      title="Simple plans for personal vaults and administrative teams."
-      description="The pricing route now looks like part of the same premium product family exported from Stitch."
-      icon={Bell}
-      actions={[
-        { label: 'Start Secure Journaling', to: '/register' },
-        { label: 'View Security', to: '/security' },
-      ]}
-      stats={[
-        { label: 'Starter', value: 'Free', tone: 'primary' },
-        { label: 'Professional', value: '$12/mo', tone: 'secondary' },
-        { label: 'Team Admin', value: '$39/mo', tone: 'neutral' },
-        { label: 'Support Tier', value: 'Priority', tone: 'primary' },
-      ]}
-      cards={[
-        { title: 'Personal vaults', body: 'Entry-level access highlights encrypted journaling and personal audit visibility.', icon: BookOpen },
-        { title: 'Operations teams', body: 'Admin-focused plans frame dashboards, logs, and user management as a separate value layer.', icon: UserCog },
-        { title: 'Cleaner navigation', body: 'Pricing is no longer a dead route, which helps the landing page feel production-ready.', icon: Sparkles },
-      ]}
-    />
+    <div className="min-h-screen">
+      <PricingHero />
+
+      <section className="mx-auto max-w-7xl px-4 py-12 md:px-8">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {plans.map((plan) => {
+            const Icon = plan.icon;
+            return (
+              <div
+                key={plan.name}
+                className={`relative flex flex-col rounded-2xl border bg-gradient-to-b p-6 ${plan.accent} ${plan.border} backdrop-blur-xl shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl`}
+              >
+                {plan.badge && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-500 to-violet-600 px-4 py-1 text-[10px] font-black uppercase tracking-widest text-white shadow-lg">
+                    {plan.badge}
+                  </span>
+                )}
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                  <Icon size={22} className="text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-extrabold text-white">{plan.name}</h3>
+                <div className="mt-2 flex items-end gap-1">
+                  <span className="text-4xl font-black text-white">{plan.price}</span>
+                  <span className="mb-1 text-sm text-on-surface-variant">/{plan.period}</span>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">{plan.description}</p>
+                <div className="my-5 h-px bg-white/8" />
+                <ul className="flex-1 space-y-2">
+                  {PLAN_FEATURES.filter(f => f[plan.featureKey]).map(f => (
+                    <li key={f.label} className="flex items-center gap-2 text-sm text-on-surface">
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                      {f.label}
+                    </li>
+                  ))}
+                </ul>
+                <a
+                  href="/register"
+                  className="mt-6 block rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 py-3 text-center text-sm font-bold text-white shadow-lg transition-all hover:opacity-90 hover:shadow-cyan-500/30"
+                >
+                  {plan.cta}
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-4 pb-16 md:px-8">
+        <h2 className="mb-8 text-center text-2xl font-extrabold text-white">Full Feature Comparison</h2>
+        <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-6 py-4 text-left font-bold text-on-surface-variant">Feature</th>
+                {plans.map(p => (
+                  <th key={p.name} className="px-4 py-4 text-center font-extrabold text-white">{p.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN_FEATURES.map((f, i) => (
+                <tr key={f.label} className={i % 2 === 0 ? 'bg-white/3' : ''}>
+                  <td className="px-6 py-3 text-on-surface">{f.label}</td>
+                  {(['free', 'pro', 'team', 'enterprise'] as const).map(key => (
+                    <td key={key} className="px-4 py-3 text-center">
+                      {f[key]
+                        ? <span className="text-cyan-400 text-lg">✓</span>
+                        : <span className="text-white/20">—</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-4 pb-10 md:px-8">
+        <div className="grid gap-4 rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/10 to-violet-600/10 p-8 backdrop-blur-xl sm:grid-cols-3">
+          {[
+            { icon: Lock, title: 'AES-256 Encryption', body: 'Every entry encrypted client-side before it leaves your device.' },
+            { icon: ShieldCheck, title: 'Zero-Knowledge', body: 'We never hold your decryption keys — only you can read your data.' },
+            { icon: FileText, title: 'Audit Logs', body: 'Every access event is logged and tamper-evident on all paid plans.' },
+          ].map(({ icon: I, title, body }) => (
+            <div key={title} className="flex items-start gap-4">
+              <div className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                <I size={18} className="text-cyan-400" />
+              </div>
+              <div>
+                <p className="font-bold text-white">{title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-on-surface-variant">{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <StickyCTA />
+    </div>
   );
 }
 
 export function AboutPage() {
+  const pillars = [
+    {
+      icon: Lock,
+      title: 'AES-256 GCM Encryption',
+      body: 'Every diary entry is encrypted client-side using AES-256 in Galois/Counter Mode — the same cipher trusted by governments, banks, and defence agencies worldwide. Your data is ciphertext before it ever leaves your browser.',
+      accent: 'from-cyan-500/20 to-cyan-500/5',
+      border: 'border-cyan-500/25',
+      iconColor: 'text-cyan-400',
+    },
+    {
+      icon: Fingerprint,
+      title: 'PBKDF2 Key Derivation',
+      body: 'Your encryption key is derived from your master password using PBKDF2 with 100,000 iterations of SHA-256. The raw key is never stored — not in our database, not in memory on the server, not anywhere outside your device.',
+      accent: 'from-violet-500/20 to-violet-500/5',
+      border: 'border-violet-500/25',
+      iconColor: 'text-violet-400',
+    },
+    {
+      icon: ShieldCheck,
+      title: 'Zero-Knowledge Architecture',
+      body: 'Our servers store only encrypted blobs. No CipherDiary employee — no matter their clearance level — can ever read your entries. The product is designed so that a full server breach leaks nothing but noise.',
+      accent: 'from-emerald-500/20 to-emerald-500/5',
+      border: 'border-emerald-500/25',
+      iconColor: 'text-emerald-400',
+    },
+    {
+      icon: Radar,
+      title: 'TLS 1.3 in Transit',
+      body: 'All traffic between your device and our servers uses TLS 1.3 with forward secrecy. Even if a future attacker captures your encrypted traffic today, they cannot decrypt past sessions.',
+      accent: 'from-amber-500/20 to-amber-500/5',
+      border: 'border-amber-500/25',
+      iconColor: 'text-amber-400',
+    },
+    {
+      icon: Eye,
+      title: 'Minimal Data Collection',
+      body: 'We collect only what is operationally necessary: email, hashed credentials, and encrypted entry blobs. No behavioural profiling. No ad targeting. No third-party data brokers.',
+      accent: 'from-rose-500/20 to-rose-500/5',
+      border: 'border-rose-500/25',
+      iconColor: 'text-rose-400',
+    },
+    {
+      icon: FileText,
+      title: 'Immutable Audit Logs',
+      body: 'Every login, export, and key rotation is written to an append-only audit log. You can inspect exactly who accessed your account and when — full transparency, always on your side.',
+      accent: 'from-sky-500/20 to-sky-500/5',
+      border: 'border-sky-500/25',
+      iconColor: 'text-sky-400',
+    },
+  ];
+
+  const timeline = [
+    { year: '2022', event: 'Concept', detail: 'Founding team frustrated by plaintext note apps and data breaches.' },
+    { year: '2023', event: 'Alpha', detail: 'First zero-knowledge encryption prototype — entries decryptable only on-device.' },
+    { year: '2024', event: 'Beta', detail: 'Multi-device sync via Firebase with end-to-end encrypted blobs.' },
+    { year: '2025', event: 'Launch', detail: 'Public release with admin dashboard, audit logs, and MFA support.' },
+    { year: '2026', event: 'Today', detail: 'Team plan, compliance certifications, and enterprise-grade SLA in progress.' },
+  ];
+
+  const stats = [
+    { value: '256-bit', label: 'Encryption Key Size' },
+    { value: '100K', label: 'PBKDF2 Iterations' },
+    { value: '0', label: 'Plaintext Stored on Server' },
+    { value: 'TLS 1.3', label: 'Transport Security' },
+  ];
+
   return (
-    <ModulePage
-      badge="Product Narrative"
-      title="Built for people who care what happens to private thoughts."
-      description="The About page now shares the same glassy, high-command visual language as the exported Stitch concept."
-      icon={ShieldCheck}
-      actions={[
-        { label: 'Go Home', to: '/' },
-        { label: 'View Pricing', to: '/pricing' },
-      ]}
-      stats={[
-        { label: 'Focus', value: 'Privacy-First', tone: 'primary' },
-        { label: 'Audience', value: 'Security-Conscious', tone: 'secondary' },
-        { label: 'Architecture', value: 'Modern Web + Firebase', tone: 'neutral' },
-        { label: 'Mission', value: 'Own Your Memory', tone: 'primary' },
-      ]}
-      cards={[
-        { title: 'Authentic framing', body: 'A stronger story helps the premium visual design feel grounded rather than ornamental.', icon: Shield },
-        { title: 'Consistent language', body: 'The same secure-product tone now extends beyond the dashboard shell into public-facing pages.', icon: ScrollText },
-        { title: 'Fuller product surface', body: 'The top navigation now has real destinations behind every link.', icon: Sparkles },
-      ]}
-    />
+    <div className="min-h-screen">
+
+      {/* ── HERO ── */}
+      <section className="relative flex min-h-[55vh] flex-col items-center justify-center overflow-hidden px-4 py-20 text-center">
+        <div className="hero-bg" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_0%,rgba(6,182,212,0.15),transparent_55%),radial-gradient(ellipse_at_40%_100%,rgba(139,92,246,0.15),transparent_55%)]" />
+        <div className="relative z-10 max-w-4xl">
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-xs font-black uppercase tracking-widest text-cyan-400">
+            <ShieldCheck size={13} /> Our Story
+          </span>
+          <h1 className="gradient-heading text-5xl font-extrabold leading-tight md:text-7xl">
+            Private writing.<br />Actually private.
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-on-surface-variant">
+            CipherDiary was built on one non-negotiable belief: your diary belongs to <em>you</em> —
+            not to our servers, not to advertisers, and not to anyone with admin access.
+            We built the encryption model first. The app second.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <a href="/register" className="rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-8 py-4 font-bold text-white shadow-[0_0_32px_rgba(6,182,212,0.3)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_48px_rgba(6,182,212,0.45)]">
+              Start for Free
+            </a>
+            <a href="/pricing" className="rounded-xl border border-white/15 bg-white/5 px-8 py-4 font-bold text-white transition-all hover:bg-white/10">
+              View Pricing
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS BAR ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-16 md:px-8">
+        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl md:grid-cols-4">
+          {stats.map(s => (
+            <div key={s.label} className="text-center">
+              <p className="text-3xl font-extrabold text-white md:text-4xl">{s.value}</p>
+              <p className="mt-1 text-xs uppercase tracking-widest text-on-surface-variant">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── MISSION STATEMENT ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-20 md:px-8">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600/10 to-cyan-500/10 p-10 backdrop-blur-xl">
+          <p className="text-[11px] font-black uppercase tracking-widest text-cyan-400">Our Mission</p>
+          <h2 className="mt-4 text-3xl font-extrabold text-white md:text-4xl">
+            We believe digital privacy is a human right — not a premium feature.
+          </h2>
+          <p className="mt-6 text-base leading-8 text-on-surface-variant">
+            The journaling industry has a dirty secret: most apps store your entries in plaintext and sell
+            aggregated behavioural data to advertisers. CipherDiary exists to fix that.
+            We built a zero-knowledge architecture where <strong className="text-white">the server never sees your words</strong>.
+            Our revenue comes from subscriptions, not data. Our success depends on your trust.
+          </p>
+          <p className="mt-4 text-base leading-8 text-on-surface-variant">
+            Whether you write about therapy breakthroughs, business strategy, personal grief, or daily gratitude —
+            that content is yours. We are merely the vault. You hold every key.
+          </p>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-20 md:px-8">
+        <h2 className="mb-4 text-3xl font-extrabold text-white">How the encryption works</h2>
+        <p className="mb-10 max-w-2xl text-on-surface-variant">
+          Every time you save an entry, CipherDiary runs a 4-step process entirely on your device before any data is sent to our servers.
+        </p>
+        <div className="space-y-4">
+          {[
+            { step: '01', title: 'Key derivation', body: 'Your password is fed into PBKDF2-SHA256 with 100,000 iterations to produce a 256-bit encryption key. This key is derived fresh on each login and never stored.' },
+            { step: '02', title: 'Plaintext preparation', body: 'Your entry text is encoded to UTF-8 bytes. A random 96-bit initialisation vector (IV) is generated for this specific entry.' },
+            { step: '03', title: 'AES-256 GCM encryption', body: 'The key and IV encrypt your entry using AES-256 GCM, producing ciphertext plus a 128-bit authentication tag that detects any tampering.' },
+            { step: '04', title: 'Upload encrypted blob', body: 'The IV, ciphertext, and auth tag are bundled into a single blob and uploaded to Firebase. Our servers receive nothing but random-looking bytes.' },
+          ].map(({ step, title, body }) => (
+            <div key={step} className="flex gap-6 rounded-2xl border border-white/8 bg-white/3 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/20 hover:bg-white/5">
+              <span className="shrink-0 font-mono text-4xl font-black text-cyan-500/30">{step}</span>
+              <div>
+                <h3 className="text-lg font-bold text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-7 text-on-surface-variant">{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── SECURITY PILLARS ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-20 md:px-8">
+        <h2 className="mb-2 text-3xl font-extrabold text-white">Security pillars</h2>
+        <p className="mb-10 text-on-surface-variant">Six independent layers that make CipherDiary trustworthy by design, not by policy.</p>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {pillars.map(({ icon: Icon, title, body, accent, border, iconColor }) => (
+            <div key={title} className={`rounded-2xl border bg-gradient-to-b p-6 backdrop-blur-xl transition-all hover:-translate-y-1 ${accent} ${border}`}>
+              <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 ${iconColor}`}>
+                <Icon size={20} />
+              </div>
+              <h3 className="mb-2 text-base font-bold text-white">{title}</h3>
+              <p className="text-sm leading-6 text-on-surface-variant">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TIMELINE ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-20 md:px-8">
+        <h2 className="mb-10 text-3xl font-extrabold text-white">Our journey</h2>
+        <div className="relative pl-6">
+          <div className="absolute left-0 top-0 h-full w-px bg-gradient-to-b from-cyan-500 via-violet-500 to-transparent" />
+          {timeline.map(({ year, event, detail }) => (
+            <div key={year} className="group relative mb-8 pl-8">
+              <div className="absolute -left-[5px] top-1.5 h-3 w-3 rounded-full border-2 border-cyan-500 bg-background transition-all group-hover:scale-150 group-hover:border-violet-400" />
+              <p className="text-xs font-black uppercase tracking-widest text-cyan-400">{year} · {event}</p>
+              <p className="mt-1 text-sm leading-6 text-on-surface-variant">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="mx-auto max-w-5xl px-4 pb-16 md:px-8">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/15 to-violet-600/15 p-12 text-center backdrop-blur-xl">
+          <div className="hero-bg" />
+          <div className="relative z-10">
+            <h2 className="text-3xl font-extrabold text-white md:text-4xl">Ready to own your words?</h2>
+            <p className="mx-auto mt-4 max-w-xl text-on-surface-variant">
+              Start with a free account. No credit card required. Your first encrypted entry is one click away.
+            </p>
+            <a href="/register" className="mt-8 inline-block rounded-xl bg-gradient-to-r from-cyan-500 to-violet-600 px-10 py-4 font-bold text-white shadow-[0_0_40px_rgba(6,182,212,0.3)] transition-all hover:-translate-y-0.5">
+              Create Your Vault — It's Free
+            </a>
+          </div>
+        </div>
+      </section>
+
+    </div>
   );
 }
 

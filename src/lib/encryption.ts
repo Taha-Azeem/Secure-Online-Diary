@@ -1,19 +1,41 @@
 import CryptoJS from 'crypto-js';
 
 /**
- * AES-256 Encryption Utility
- * Provides methods to encrypt and decrypt data using a master key.
+ * AES-256 Zero-Knowledge Encryption Service
+ * Uses PBKDF2 for key derivation from a user's master passphrase,
+ * utilizing random salts and IVs to ensure ciphertext security.
  */
 export const EncryptionService = {
   /**
-   * Encrypts a string using AES-256.
-   * @param data The plaintext data to encrypt.
-   * @param key The master key for encryption.
-   * @returns The encrypted ciphertext.
+   * Generates a 128-bit random salt.
    */
-  encrypt: (data: string, key: string): string => {
+  generateSalt: () => {
+    return CryptoJS.lib.WordArray.random(128 / 8);
+  },
+
+  /**
+   * Generates a 128-bit random IV.
+   */
+  generateIv: () => {
+    return CryptoJS.lib.WordArray.random(128 / 8);
+  },
+
+  /**
+   * Encrypts plaintext using AES-256 with PBKDF2 key derivation.
+   * @param data The plaintext data to encrypt.
+   * @param keyPhrase The user's master access key.
+   * @param salt The WordArray salt.
+   * @param iv The WordArray IV.
+   * @returns Base64 encoded ciphertext.
+   */
+  encrypt: (data: string, keyPhrase: string, salt: CryptoJS.lib.WordArray, iv: CryptoJS.lib.WordArray): string => {
     try {
-      return CryptoJS.AES.encrypt(data, key).toString();
+      const derivedKey = CryptoJS.PBKDF2(keyPhrase, salt, {
+        keySize: 256 / 32,
+        iterations: 100
+      });
+      const encrypted = CryptoJS.AES.encrypt(data, derivedKey, { iv: iv });
+      return encrypted.toString(); // Standard base64 formatting
     } catch (error) {
       console.error('Encryption error:', error);
       return '';
@@ -21,27 +43,32 @@ export const EncryptionService = {
   },
 
   /**
-   * Decrypts a ciphertext using AES-256.
-   * @param ciphertext The encrypted data to decrypt.
-   * @param key The master key for decryption.
-   * @returns The decrypted plaintext.
+   * Decrypts ciphertext using AES-256 with PBKDF2 key derivation.
+   * @param ciphertext Base64 encoded ciphertext.
+   * @param keyPhrase The user's master access key.
+   * @param saltHex Hex-encoded salt string.
+   * @param ivHex Hex-encoded IV string.
+   * @returns Decrypted UTF-8 plaintext.
    */
-  decrypt: (ciphertext: string, key: string): string => {
+  decrypt: (ciphertext: string, keyPhrase: string, saltHex: string, ivHex: string): string => {
     try {
-      const bytes = CryptoJS.AES.decrypt(ciphertext, key);
-      const originalText = bytes.toString(CryptoJS.enc.Utf8);
-      return originalText;
+      if (!ciphertext || !keyPhrase || !saltHex || !ivHex) return '';
+      const salt = CryptoJS.enc.Hex.parse(saltHex);
+      const iv = CryptoJS.enc.Hex.parse(ivHex);
+      const derivedKey = CryptoJS.PBKDF2(keyPhrase, salt, {
+        keySize: 256 / 32,
+        iterations: 100
+      });
+      const decrypted = CryptoJS.AES.decrypt(
+        ciphertext,
+        derivedKey,
+        { iv: iv }
+      );
+      return decrypted.toString(CryptoJS.enc.Utf8);
     } catch (error) {
       console.error('Decryption error:', error);
       return '';
     }
-  },
-
-  /**
-   * Generates a random salt or IV if needed for manual implementation,
-   * though CryptoJS handles it internally with its password-based API.
-   */
-  generateKey: () => {
-    return CryptoJS.lib.WordArray.random(32).toString();
   }
 };
+export default EncryptionService;

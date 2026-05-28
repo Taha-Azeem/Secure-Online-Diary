@@ -48,7 +48,7 @@ export default function Navbar() {
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="rounded-xl bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
+                className="rounded-xl  bg-cyan-500  px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
               >
                 Initialize Vault
               </button>
@@ -56,7 +56,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => navigate(dashboardPath)}
-              className="rounded-xl bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
+              className="rounded-xl  bg-cyan-500  px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5"
             >
               {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
             </button>

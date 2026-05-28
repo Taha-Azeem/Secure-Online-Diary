@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 0. Global Safety Net
+    // Global Safety Net
     match /{document=**} {
       allow read, write: if false;
     }
@@ -16,16 +16,9 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-<<<<<<< HEAD
-=======
     function isAdmin() {
       return isSignedIn() &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
->>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -46,45 +39,47 @@ service cloud.firestore {
       return data.email is string && data.email.size() <= 255 &&
              data.displayName is string && data.displayName.size() <= 100 &&
              data.role in ['user', 'admin'] &&
-             data.keys().hasAll(['email', 'displayName', 'role', 'uid', 'createdAt', 'lastLogin', 'biometricsEnabled']) &&
-             data.keys().size() == 7;
-    }
+             data.uid == request.auth.uid &&
+             data.keys().hasAll(['email', 'displayName', 'role', 'uid', 'createdAt', 'lastLogin', 'biometricsEnabled']);
+     }
 
     function isValidEntry(data) {
       return data.ownerId == request.auth.uid &&
              data.titleEncrypted is string && data.titleEncrypted.size() <= 1000 &&
              data.contentEncrypted is string && data.contentEncrypted.size() <= 100000 &&
-             data.category is string && data.category.size() <= 50 &&
-             data.securityLevel is string && data.securityLevel.size() <= 20 &&
-             data.keys().hasAll(['ownerId', 'titleEncrypted', 'contentEncrypted', 'createdAt', 'updatedAt', 'category', 'securityLevel']) &&
-             data.keys().size() == 7;
+             data.categoryEncrypted is string && data.categoryEncrypted.size() <= 500 &&
+             data.securityLevelEncrypted is string && data.securityLevelEncrypted.size() <= 500 &&
+             data.iv is string && data.iv.size() <= 128 &&
+             data.salt is string && data.salt.size() <= 128;
+    }
+
+    // Accept server-side timestamps (or client-supplied timestamps) for created/updated fields.
+    function hasValidTimestamps(data) {
+      return (data.createdAt is timestamp) && (data.updatedAt is timestamp);
     }
 
     function isValidActivityLog(data) {
       return data.userId == request.auth.uid &&
+             data.userEmail is string &&
              data.action is string && data.action.size() <= 100 &&
              data.resource is string && data.resource.size() <= 255 &&
-             data.status is string && data.status.size() <= 20;
+             data.status is string && data.status.size() <= 20 &&
+             data.keys().hasAll(['userId', 'userEmail', 'action', 'resource', 'timestamp', 'status']) &&
+             data.keys().size() == 6;
     }
 
     // --- COLLECTIONS ---
 
     // 1. User Profiles
     match /users/{userId} {
-<<<<<<< HEAD
-      allow get: if isOwner(userId) || (isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user'; // Prevent self-elevation
-      allow update: if isOwner(userId) && isValidUser(incoming()) && 
-                    incoming().role == existing().role && // Immortality for roles
-                    incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'lastLogin', 'biometricsEnabled']);
-=======
       allow get: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user'; // Prevent self-elevation
+      allow create: if isOwner(userId) && isValidUser(incoming()) && incoming().role == 'user' && isServerTimestamp(incoming().createdAt) && isServerTimestamp(incoming().lastLogin);
       allow update: if (
                       isOwner(userId) && isValidUser(incoming()) &&
                       incoming().role == existing().role &&
-                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'lastLogin', 'biometricsEnabled'])
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'lastLogin', 'biometricsEnabled', 'verifierPayload', 'verifierSalt', 'verifierIv'])
                     ) || (
                       isAdmin() && isValidUser(incoming()) &&
                       incoming().uid == existing().uid &&
@@ -95,51 +90,48 @@ service cloud.firestore {
                       incoming().lastLogin == existing().lastLogin &&
                       incoming().diff(existing()).affectedKeys().hasOnly(['role'])
                     );
->>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 2. Diary Entries
     match /entries/{entryId} {
-<<<<<<< HEAD
-      allow get: if isOwner(existing().ownerId);
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-=======
-      allow get: if isOwner(existing().ownerId) || isAdmin();
-      allow list: if (isSignedIn() && resource.data.ownerId == request.auth.uid) || isAdmin();
->>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
-      allow create: if isSignedIn() && isValidEntry(incoming()) && isServerTimestamp(incoming().createdAt);
-      allow update: if isOwner(existing().ownerId) && isValidEntry(incoming()) && 
+      allow get: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn();
+      // Allow creation when the entry is valid and timestamps are present (serverTimestamp() resolves to a timestamp).
+      allow create: if isSignedIn() && isValidEntry(incoming()) && hasValidTimestamps(incoming());
+      allow update: if isSignedIn() && existing().ownerId == request.auth.uid &&
+                    isValidEntry(incoming()) &&
                     incoming().ownerId == existing().ownerId &&
+                    incoming().createdAt == existing().createdAt &&
                     isServerTimestamp(incoming().updatedAt) &&
-                    incoming().diff(existing()).affectedKeys().hasOnly(['titleEncrypted', 'contentEncrypted', 'updatedAt', 'category', 'securityLevel']);
-      allow delete: if isOwner(existing().ownerId);
+                    incoming().diff(existing()).affectedKeys().hasOnly(['titleEncrypted', 'contentEncrypted', 'updatedAt', 'category', 'securityLevel', 'iv', 'salt']);
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
     }
 
     // 3. Activity Logs
     match /activityLogs/{logId} {
       allow create: if isSignedIn() && isValidActivityLog(incoming()) && isServerTimestamp(incoming().timestamp);
-<<<<<<< HEAD
-      allow get: if isSignedIn() && (isOwner(existing().userId) || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-=======
-      allow get: if isSignedIn() && (isOwner(existing().userId) || isAdmin());
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
       allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
->>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 4. Security Logs
     match /securityLogs/{logId} {
-      allow create: if true; // Allow logging even for unauthenticated (e.g. failed login attempts)
-<<<<<<< HEAD
-      allow read: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-=======
+      allow create: if true;
       allow read: if isAdmin();
->>>>>>> d9e7f53 (feat: Improve error handling with custom Firestore utility)
     }
 
     // 5. Notifications
     match /notifications/{notificationId} {
-      allow read: if isOwner(existing().userId);
-      allow update: if isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow read: if isSignedIn() && existing().userId == request.auth.uid;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && existing().userId == request.auth.uid &&
+                    incoming().userId == existing().userId &&
+                    incoming().title == existing().title &&
+                    incoming().message == existing().message &&
+                    incoming().timestamp == existing().timestamp &&
+                    incoming().priority == existing().priority &&
+                    incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
     }
   }
 }

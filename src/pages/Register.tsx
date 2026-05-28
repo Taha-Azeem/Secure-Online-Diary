@@ -1,11 +1,32 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { addDoc, collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { AlertTriangle, Ghost, Key, Mail, Rocket, Shield, UserPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
+import { AppFooter } from '../components/Layout';
+import CryptoJS from 'crypto-js';
+import { EncryptionService } from '../lib/encryption';
+
+const getPasswordStrength = (pass: string) => {
+  if (!pass) return { score: 0, label: 'Empty', color: 'bg-white/10' };
+  let score = 0;
+  if (pass.length >= 8) score++;
+  if (/[A-Z]/.test(pass)) score++;
+  if (/[a-z]/.test(pass)) score++;
+  if (/[0-9]/.test(pass)) score++;
+  if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+  if (score <= 2) {
+    return { score, label: 'Weak (Vulnerable)', color: 'bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.5)]' };
+  }
+  if (score <= 4) {
+    return { score, label: 'Medium Secure', color: 'bg-secondary shadow-[0_0_8px_#d1bcff]' };
+  }
+  return { score, label: 'Strong Vault Key', color: 'bg-success shadow-[0_0_8px_#10b981]' };
+};
 
 export default function Register() {
   const { setVaultKey } = useAuth();
@@ -13,7 +34,9 @@ export default function Register() {
     username: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
+  const [consentChecked, setConsentChecked] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -27,6 +50,18 @@ export default function Register() {
     setError('');
     setLoading(true);
 
+    if (formData.password !== formData.confirmPassword) {
+      setError('Key Mismatch: Master access keys do not match.');
+      setLoading(false);
+      return;
+    }
+
+    if (!consentChecked) {
+      setError('Protocol Error: You must accept the Zero-Knowledge warning checkbox.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
@@ -35,6 +70,10 @@ export default function Register() {
       await updateProfile(user, { displayName: formData.username });
 
       try {
+        const verifierSalt = EncryptionService.generateSalt();
+        const verifierIv = EncryptionService.generateIv();
+        const verifierPayload = EncryptionService.encrypt('vault_signature_verification', formData.password, verifierSalt, verifierIv);
+
         await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           email: user.email,
@@ -43,17 +82,48 @@ export default function Register() {
           createdAt: serverTimestamp(),
           biometricsEnabled: false,
           lastLogin: serverTimestamp(),
+          verifierPayload,
+          verifierSalt: verifierSalt.toString(CryptoJS.enc.Hex),
+          verifierIv: verifierIv.toString(CryptoJS.enc.Hex)
         });
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
       }
 
+      // Fire-and-forget: write activity log in background
+      addDoc(collection(db, 'activityLogs'), {
+        userId: user.uid,
+        userEmail: user.email,
+        action: 'Account Initialization',
+        resource: '/system/register',
+        timestamp: serverTimestamp(),
+        status: 'SUCCESS',
+      }).catch(() => {});
+
+      navigate(formData.email.includes('admin') ? '/admin' : '/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      setError(`Initialization Failed: ${err.message || 'Error creating secure vault.'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+      const user = userCredential.user;
+
       try {
         await addDoc(collection(db, 'activityLogs'), {
           userId: user.uid,
           userEmail: user.email,
-          action: 'Account Initialization',
-          resource: '/system/register',
+          action: 'Login Success (Google)',
+          resource: '/system/auth',
           timestamp: serverTimestamp(),
           status: 'SUCCESS',
         });
@@ -61,10 +131,10 @@ export default function Register() {
         handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
       }
 
-      navigate(formData.email.includes('admin') ? '/admin' : '/dashboard');
+      navigate(user.email?.includes('admin') ? '/admin' : '/dashboard');
     } catch (err: any) {
       console.error(err);
-      setError(`Initialization Failed: ${err.message || 'Error creating secure vault.'}`);
+      setError(`Google Authentication Failed: ${err.message || 'Error occurred.'}`);
     } finally {
       setLoading(false);
     }
@@ -107,7 +177,7 @@ export default function Register() {
               Establish Your <br /> <span className="text-primary-fixed-dim">Digital Sovereignty</span>
             </h1>
             <p className="max-w-md text-lg leading-relaxed text-on-surface-variant">
-              Join the elite network of secure journals. Every character you type is fragmented and distributed across our decentralized encrypted mesh.
+              Start your private writing journey. Your entries are fully encrypted on your device using zero-knowledge architecture before uploading, so only you can unlock them.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-surface-container-low/40 p-4 shadow-lg backdrop-blur-xl">
@@ -130,13 +200,9 @@ export default function Register() {
           <div className="relative w-full lg:w-1/2">
             <div className="glass-panel relative z-10 rounded-2xl p-10 shadow-2xl">
               <form onSubmit={handleRegister} className="space-y-6">
-                <div className="mb-4 flex items-end justify-between">
-                  <h2 className="text-3xl font-extrabold text-on-surface">Vault Initialization</h2>
-                  <span className="text-xs font-black text-primary-fixed-dim">STEP 1/3</span>
-                </div>
-
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-                  <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-primary-container to-secondary-container" />
+                <div className="mb-4">
+                  <h2 className="text-2xl font-black text-on-surface tracking-tight">Create Secure Vault</h2>
+                  <p className="text-xs font-semibold text-on-surface-variant mt-1">Set up your local cryptographic key to start journaling.</p>
                 </div>
 
                 {error ? (
@@ -147,7 +213,7 @@ export default function Register() {
                 ) : null}
 
                 <div className="space-y-2">
-                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Universal Identifier (Username)</label>
+                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Display Name / Username</label>
                   <div className="relative">
                     <UserPlus size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-fixed-dim/70" />
                     <input
@@ -163,7 +229,7 @@ export default function Register() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Encryption Endpoint (Email)</label>
+                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Secure Email Address</label>
                   <div className="relative">
                     <Mail size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-fixed-dim/70" />
                     <input
@@ -179,7 +245,7 @@ export default function Register() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Master Access Key (Password)</label>
+                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Master Password</label>
                   <div className="relative">
                     <Key size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-fixed-dim/70" />
                     <input
@@ -189,16 +255,63 @@ export default function Register() {
                       value={formData.password}
                       onChange={handleChange}
                       className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest py-4 pl-12 pr-4 text-on-surface shadow-inner outline-none transition-all focus:ring-2 focus:ring-primary-container"
-                      placeholder="Create a strong passphrase"
+                      placeholder="Create a strong master passphrase"
                     />
                   </div>
-                  <div className="mt-2 flex gap-1.5">
-                    <div className="h-1 flex-1 rounded-full bg-secondary" />
-                    <div className="h-1 flex-1 rounded-full bg-secondary" />
-                    <div className="h-1 flex-1 rounded-full bg-surface-container-highest" />
-                    <div className="h-1 flex-1 rounded-full bg-surface-container-highest" />
+                  
+                  {/* Dynamic Password Strength Indicator */}
+                  {(() => {
+                    const strength = getPasswordStrength(formData.password);
+                    return (
+                      <>
+                        <div className="mt-2 flex gap-1.5">
+                          <div className={`h-1 flex-1 rounded-full ${formData.password ? (strength.score >= 1 ? (strength.score <= 2 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : strength.score <= 4 ? 'bg-secondary' : 'bg-success') : 'bg-surface-container-highest') : 'bg-surface-container-highest'}`} />
+                          <div className={`h-1 flex-1 rounded-full ${formData.password ? (strength.score >= 3 ? (strength.score <= 4 ? 'bg-secondary' : 'bg-success') : 'bg-surface-container-highest') : 'bg-surface-container-highest'}`} />
+                          <div className={`h-1 flex-1 rounded-full ${formData.password ? (strength.score >= 4 ? (strength.score <= 4 ? 'bg-secondary' : 'bg-success') : 'bg-surface-container-highest') : 'bg-surface-container-highest'}`} />
+                          <div className={`h-1 flex-1 rounded-full ${formData.password ? (strength.score >= 5 ? 'bg-success' : 'bg-surface-container-highest') : 'bg-surface-container-highest'}`} />
+                        </div>
+                        <p className="mt-1 text-[10px] font-bold uppercase tracking-tight text-on-surface-variant">
+                          Key Strength: <span className={formData.password ? (strength.score <= 2 ? 'text-red-400' : strength.score <= 4 ? 'text-secondary' : 'text-success') : 'text-on-surface-variant'}>{strength.label}</span>
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="ml-1 text-xs font-black uppercase tracking-widest text-on-surface-variant">Confirm Master Password</label>
+                  <div className="relative">
+                    <Key size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-fixed-dim/70" />
+                    <input
+                      name="confirmPassword"
+                      type="password"
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full rounded-xl border border-outline-variant/30 bg-surface-container-lowest py-4 pl-12 pr-4 text-on-surface shadow-inner outline-none transition-all focus:ring-2 focus:ring-primary-container"
+                      placeholder="Verify your master passphrase"
+                    />
                   </div>
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-tight text-on-surface-variant">Entropy Level: Medium Secure</p>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-tight text-red-400">Passwords do not match</p>
+                  )}
+                  {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-tight text-success">Passwords match</p>
+                  )}
+                </div>
+
+                {/* Zero-Knowledge Consent Checkbox */}
+                <div className="flex items-start gap-3 py-2">
+                  <input
+                    id="consentChecked"
+                    type="checkbox"
+                    checked={consentChecked}
+                    onChange={(e) => setConsentChecked(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-outline-variant bg-surface-container text-secondary focus:ring-secondary cursor-pointer"
+                  />
+                  <label htmlFor="consentChecked" className="text-xs font-semibold leading-5 text-on-surface-variant cursor-pointer hover:text-on-surface select-none">
+                    I acknowledge that CipherDiary is a zero-knowledge platform. If I forget my password, my entries cannot be recovered by anyone.
+                  </label>
                 </div>
 
                 <div className="pt-4">
@@ -209,35 +322,54 @@ export default function Register() {
                     <span>{loading ? 'INITIALIZING...' : 'Initialize Vault'}</span>
                     <Rocket size={24} />
                   </button>
+
+                  <div className="relative flex items-center justify-center my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-outline-variant/20"></div>
+                    </div>
+                    <span className="relative px-4 text-xs font-black uppercase tracking-widest text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm rounded-full">
+                      OR
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleRegister}
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 py-5 text-xl font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <svg className="h-6 w-6" viewBox="0 0 24 24">
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.54 15.02 1 12 1 7.24 1 3.23 3.73 1.28 7.7l3.85 2.99C6.07 7.4 8.78 5.04 12 5.04z"
+                      />
+                      <path
+                        fill="#4285F4"
+                        d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.74-2.38 3.58l3.69 2.87c2.16-1.99 3.42-4.91 3.42-8.6z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.13 10.69c-.24-.7-.38-1.46-.38-2.24s.14-1.54.38-2.24L1.28 7.22C.46 8.85 0 10.68 0 12.6c0 1.92.46 3.75 1.28 5.38l3.85-2.99c-.24-.7-.38-1.46-.38-2.24z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c3.24 0 5.97-1.07 7.96-2.9l-3.69-2.87c-1.16.78-2.64 1.27-4.27 1.27-3.22 0-5.93-2.36-6.9-5.65L1.28 15.84C3.23 19.8 7.24 23 12 23z"
+                      />
+                    </svg>
+                    Continue with Google
+                  </button>
+
                   <p className="mt-6 text-center text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
                     By initializing, you agree to our 256-bit <Link className="text-primary-fixed underline underline-offset-4" to="/terms">Security Protocols</Link>.
                   </p>
                 </div>
               </form>
             </div>
-
-            <div className="absolute -bottom-8 -right-12 z-20 hidden h-40 w-40 flex-col items-center justify-center gap-2 rounded-2xl border border-white/10 bg-surface-container-low/60 p-4 shadow-2xl backdrop-blur-xl lg:flex">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-fixed-dim/20 text-primary-fixed-dim">
-                <Shield size={24} />
-              </div>
-              <p className="text-center text-[10px] font-black uppercase tracking-tight text-on-surface">Biometric Link<br />Available</p>
-            </div>
           </div>
         </div>
       </main>
 
-      <footer className="mt-auto w-full bg-surface-container-highest py-12">
-        <div className="mx-auto flex max-w-container-max-width flex-col items-center justify-between gap-4 px-margin-lg md:flex-row">
-          <div className="text-xl font-extrabold text-on-surface">CipherDiary</div>
-          <div className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">© 2026 CipherDiary Secure Systems. AES-256 Bit Encrypted.</div>
-          <div className="flex gap-6 text-sm font-bold">
-            <Link className="text-on-surface-variant underline decoration-secondary hover:text-secondary" to="/terms">Privacy Protocol</Link>
-            <Link className="text-on-surface-variant underline decoration-secondary hover:text-secondary" to="/terms">Terms of Service</Link>
-            <Link className="text-on-surface-variant underline decoration-secondary hover:text-secondary" to="/security">Security Audit</Link>
-            <Link className="text-on-surface-variant underline decoration-secondary hover:text-secondary" to="/security">Compliance</Link>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }

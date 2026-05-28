@@ -17,6 +17,9 @@ interface UserProfile {
   role: 'user' | 'admin';
   biometricsEnabled: boolean;
   vaultKey?: string; // In a real app, this wouldn't be stored in plaintext
+  verifierPayload?: string;
+  verifierSalt?: string;
+  verifierIv?: string;
 }
 
 interface AuthContextType {
@@ -58,45 +61,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // Fetch user profile from Firestore
         const userDocRef = doc(db, 'users', firebaseUser.uid);
         try {
           const userDoc = await getDoc(userDocRef);
           
           if (userDoc.exists()) {
             setProfile(userDoc.data() as UserProfile);
-            // Update last login
-            await updateDoc(userDocRef, {
-              lastLogin: serverTimestamp()
-            }).catch(err => handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`));
+            // Unblock the UI immediately — lastLogin write is fire-and-forget
+            setLoading(false);
+            updateDoc(userDocRef, { lastLogin: serverTimestamp() })
+              .catch(err => handleFirestoreError(err, OperationType.UPDATE, `users/${firebaseUser.uid}`));
           } else {
-            // Create default profile if it doesn't exist
+            // Create default profile
             const newProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               displayName: firebaseUser.displayName || 'Agent',
-              role: 'user', // Default role
+              role: 'user',
               biometricsEnabled: false
             };
-            await setDoc(userDocRef, {
+            setProfile(newProfile);
+            setLoading(false);
+            // Write new profile in background
+            setDoc(userDocRef, {
               ...newProfile,
               createdAt: serverTimestamp(),
               lastLogin: serverTimestamp()
             }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${firebaseUser.uid}`));
-            setProfile(newProfile);
           }
         } catch (err) {
           handleFirestoreError(err, OperationType.GET, `users/${firebaseUser.uid}`);
+          setLoading(false);
         }
       } else {
         setProfile(null);
         setVaultKey(null);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Safety fallback: if auth init stalls (network/emulator issues), stop loading after 8s
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+      // Do not modify `user` here — leaving as null will cause a redirect to /login
+      // This prevents the app from being stuck on a perpetual loading screen.
+      // eslint-disable-next-line no-console
+      console.warn('Auth initialization fallback triggered: loading forced false after timeout');
+    }, 8000);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      unsubscribe();
+    };
   }, []);
 
   const logout = async () => {

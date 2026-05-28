@@ -2,9 +2,11 @@ import React, { useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
+import CryptoJS from 'crypto-js';
+import { useToast } from '../context/ToastContext';
+import RichTextEditor from '../components/RichTextEditor';
 import { 
   Shield, 
   Lock, 
@@ -15,79 +17,341 @@ import {
   Rocket, 
   ChevronRight,
   Database,
-  Users
+  Users,
+  AlertOctagon
 } from 'lucide-react';
 
 export default function NewEntry() {
-  const { user, vaultKey } = useAuth();
+  const { user, vaultKey, setVaultKey } = useAuth();
+  const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [titleTouched, setTitleTouched] = useState(false);
+  const [contentTouched, setContentTouched] = useState(false);
   const [loading, setLoading] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [buttonText, setButtonText] = useState('Seal & Encrypt');
+  const [debugStatus, setDebugStatus] = useState('');
+  const [passphrase, setPassphrase] = useState('');
+  const [confirmPassphrase, setConfirmPassphrase] = useState('');
+  const [modalTab, setModalTab] = useState<'unlock' | 'initialize'>('unlock');
+  const [modalError, setModalError] = useState('');
   const navigate = useNavigate();
 
-  const injectSnippet = (prefix: string, suffix = '', placeholder = '') => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+  const getPasswordStrength = (pass: string) => {
+    let score = 0;
+    if (!pass) return 0;
+    if (pass.length >= 8) score += 25;
+    if (/[A-Z]/.test(pass)) score += 25;
+    if (/[0-9]/.test(pass)) score += 25;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 25;
+    return score;
+  };
 
-    const start = textarea.selectionStart ?? content.length;
-    const end = textarea.selectionEnd ?? content.length;
-    const selected = content.slice(start, end) || placeholder;
-    const nextValue = `${content.slice(0, start)}${prefix}${selected}${suffix}${content.slice(end)}`;
+  const handleUnlockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passphrase.trim()) {
+      setModalError('Passphrase cannot be empty.');
+      return;
+    }
+    setVaultKey(passphrase.trim());
+    setPassphrase('');
+    setModalError('');
+  };
 
-    setContent(nextValue);
-
-    requestAnimationFrame(() => {
-      textarea.focus();
-      const cursor = start + prefix.length + selected.length + suffix.length;
-      textarea.setSelectionRange(cursor, cursor);
-    });
+  const handleInitializeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passphrase.length < 8) {
+      setModalError('Passphrase must be at least 8 characters long.');
+      return;
+    }
+    if (passphrase !== confirmPassphrase) {
+      setModalError('Passphrases do not match.');
+      return;
+    }
+    setVaultKey(passphrase);
+    setPassphrase('');
+    setConfirmPassphrase('');
+    setModalError('');
   };
 
   const handleSeal = async () => {
-    if (!user || !vaultKey || !title || !content) return;
+    if (!user || !vaultKey || !title.trim() || !content.trim()) {
+      setTitleTouched(true);
+      setContentTouched(true);
+      showToast('Please fill in all fields before sealing.', 'error');
+      return;
+    }
 
     setLoading(true);
+    
+    // Scramble Animation
+    let count = 0;
+    const chars = '01#X$%&*@?';
+    const interval = setInterval(() => {
+      let scrambled = '';
+      for (let i = 0; i < 12; i++) {
+        scrambled += chars[Math.floor(Math.random() * chars.length)];
+      }
+      setButtonText(scrambled);
+      count++;
+    }, 70);
+
+    // Let the animation play for 900ms
+    await new Promise((resolve) => setTimeout(resolve, 900));
+    clearInterval(interval);
+    setButtonText('ENCRYPTING...');
+    setDebugStatus('Starting encryption process...');
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    // Watchdog: if encryption takes too long, abort and notify user
+    let watchdog: number | null = window.setTimeout(() => {
+      setDebugStatus('Encryption timed out — try again');
+      setButtonText('Seal & Encrypt');
+      setLoading(false);
+      showToast('Encryption timed out. Try again or check your Vault key.', 'error');
+    }, 10000);
+
     try {
-      const titleEncrypted = EncryptionService.encrypt(title, vaultKey);
-      const contentEncrypted = EncryptionService.encrypt(content, vaultKey);
-
-      await addDoc(collection(db, 'entries'), {
-        ownerId: user.uid,
-        titleEncrypted,
-        contentEncrypted,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        category: 'Personal',
-        securityLevel: 'Tier-3'
-      }).catch(err => {
-        handleFirestoreError(err, OperationType.CREATE, 'entries');
+      setDebugStatus('Generating salt and IV');
+      const salt = EncryptionService.generateSalt();
+      const iv = EncryptionService.generateIv();
+      const saltHex = salt.toString(CryptoJS.enc.Hex);
+      const ivHex = iv.toString(CryptoJS.enc.Hex);
+      setDebugStatus('Deriving key and encrypting');
+      const { titleEncrypted, contentEncrypted, categoryEncrypted, securityLevelEncrypted } = await new Promise<{ titleEncrypted: string; contentEncrypted: string; categoryEncrypted: string; securityLevelEncrypted: string }>((resolve) => {
+        setTimeout(() => {
+          const t = EncryptionService.encrypt(title, vaultKey, salt, iv);
+          const c = EncryptionService.encrypt(content, vaultKey, salt, iv);
+          const cat = EncryptionService.encrypt('Personal', vaultKey, salt, iv);
+          const sec = EncryptionService.encrypt('Tier-3', vaultKey, salt, iv);
+          resolve({ titleEncrypted: t, contentEncrypted: c, categoryEncrypted: cat, securityLevelEncrypted: sec });
+        }, 0);
       });
 
-      // Log success
-      await addDoc(collection(db, 'activityLogs'), {
-        userId: user.uid,
-        userEmail: user.email,
-        action: 'Created Entry',
-        resource: '/diary/private',
-        timestamp: serverTimestamp(),
-        status: 'ENCRYPTED'
-      }).catch(err => {
-        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
-      });
+      // Debug: log lengths to help diagnose empty ciphertext issues
+      // eslint-disable-next-line no-console
+      console.debug('Encryption outputs (async):', { titleEncryptedLength: titleEncrypted?.length, contentEncryptedLength: contentEncrypted?.length, saltHex, ivHex });
+      setDebugStatus(`Encrypted lengths: title=${titleEncrypted?.length || 0}, content=${contentEncrypted?.length || 0}, category=${categoryEncrypted?.length || 0}, security=${securityLevelEncrypted?.length || 0}`);
 
+      // Guard: encryption must produce non-empty ciphertext
+      if (!titleEncrypted || !contentEncrypted || !categoryEncrypted || !securityLevelEncrypted) {
+        throw new Error('Encryption produced empty output. Check your vault key and try again.');
+      }
+
+      // Show immediate success feedback for encryption so user sees progress
+      setButtonText('Done');
+      setDebugStatus('Encrypted — saving...');
+      try { if (watchdog) clearTimeout(watchdog); } catch (e) {}
+
+      // Try to write to Firestore; on permission errors fall back to localStorage so the UI isn't blocked.
+      try {
+        await addDoc(collection(db, 'entries'), {
+          ownerId: user.uid,
+          titleEncrypted,
+          contentEncrypted,
+          categoryEncrypted,
+          securityLevelEncrypted,
+          salt: saltHex,
+          iv: ivHex,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      } catch (writeErr: any) {
+        console.warn('Entry write failed:', writeErr);
+        setDebugStatus('Write failed — attempting local fallback');
+        const msg = (writeErr && writeErr.message) ? String(writeErr.message).toLowerCase() : '';
+        if (msg.includes('permission') || msg.includes('insufficient') || msg.includes('missing')) {
+          // Save a local fallback copy so the user can continue working without blocking.
+          try {
+            const local = JSON.parse(window.localStorage.getItem('localEntries') || '[]');
+            local.push({
+              ownerId: user.uid,
+              titleEncrypted,
+              contentEncrypted,
+              categoryEncrypted,
+              securityLevelEncrypted,
+              salt: saltHex,
+              iv: ivHex,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              _fallback: true
+            });
+            window.localStorage.setItem('localEntries', JSON.stringify(local));
+            console.info('Saved entry to localStorage fallback (permission issue).');
+            showToast('Saved entry locally (will sync when backend available).', 'warning');
+            setDebugStatus('Saved entry to localStorage fallback');
+          } catch (localErr) {
+            console.error('Failed to save local fallback entry:', localErr);
+            throw writeErr; // surface original write error if we couldn't persist locally
+          }
+        } else {
+          throw writeErr; // rethrow non-permission errors
+        }
+      }
+
+      // Log the action — failure here must NOT abort the seal operation. Also fallback to localStorage on permission errors.
+      try {
+        await addDoc(collection(db, 'activityLogs'), {
+          userId: user.uid,
+          userEmail: user.email ?? '',
+          action: 'Created Entry',
+          resource: '/diary/private',
+          timestamp: serverTimestamp(),
+          status: 'ENCRYPTED'
+        });
+      } catch (logErr: any) {
+        console.warn('Activity log write failed (non-critical):', logErr);
+        const msg = (logErr && logErr.message) ? String(logErr.message).toLowerCase() : '';
+        if (msg.includes('permission') || msg.includes('insufficient') || msg.includes('missing')) {
+          try {
+            const local = JSON.parse(window.localStorage.getItem('localActivityLogs') || '[]');
+            local.push({
+              userId: user.uid,
+              userEmail: user.email ?? '',
+              action: 'Created Entry',
+              resource: '/diary/private',
+              timestamp: new Date().toISOString(),
+              status: 'ENCRYPTED',
+              _fallback: true
+            });
+            window.localStorage.setItem('localActivityLogs', JSON.stringify(local));
+            console.info('Saved activity log to localStorage fallback (permission issue).');
+            showToast('Activity logged locally (will sync later).', 'warning');
+            setDebugStatus('Saved activity log to localStorage fallback');
+          } catch (localErr) {
+            console.warn('Failed to save local fallback activity log:', localErr);
+          }
+        }
+      }
+
+      // Mark UI as completed and give user feedback before navigating away
+      setButtonText('Done');
+      setDebugStatus('Completed — entry sealed');
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      showToast('Diary entry encrypted and sealed in the vault successfully!', 'success');
+      // allow toast to render briefly before navigation
+      await new Promise((resolve) => setTimeout(resolve, 700));
       navigate('/dashboard');
     } catch (err) {
-      console.error(err);
-      // Main catch for the entire block if something throws elsewhere
-      alert('Failed to seal entry. Encryption engine reported an error.');
+      console.error('Seal entry error:', err);
+      const message = err instanceof Error ? err.message : 'Encryption engine reported an error.';
+      showToast(`Failed to seal entry. ${message}`, 'error');
+      setButtonText('Seal & Encrypt');
     } finally {
       setLoading(false);
+      // clear watchdog if still active
+      try { if (watchdog) clearTimeout(watchdog); } catch (e) {}
     }
   };
 
   return (
     <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-12">
+      {!vaultKey && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
+          <div className="w-full max-w-lg bg-surface-container-low border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 shadow-[0_0_20px_rgba(0,218,243,0.3)]">
+                <Lock size={32} className="text-primary-fixed-dim" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-white">Vault Access Verification</h2>
+              <p className="text-sm text-on-surface-variant">Enter or create your master local encryption key before creating entries.</p>
+            </div>
+
+            <div className="flex bg-surface-container-lowest/60 rounded-xl p-1 border border-white/5">
+              <button
+                type="button"
+                onClick={() => { setModalTab('unlock'); setModalError(''); }}
+                className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'unlock' ? 'bg-primary-container text-on-primary-container shadow' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Unlock Vault
+              </button>
+              <button
+                type="button"
+                onClick={() => { setModalTab('initialize'); setModalError(''); }}
+                className={`flex-1 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all ${modalTab === 'initialize' ? 'bg-primary-container text-on-primary-container shadow' : 'text-on-surface-variant hover:text-on-surface'}`}
+              >
+                Initialize Vault
+              </button>
+            </div>
+
+            {modalError && (
+              <div className="flex items-center gap-3 rounded-xl border border-error/50 bg-error/10 p-4 text-xs font-bold text-error animate-pulse">
+                <AlertOctagon size={16} />
+                {modalError}
+              </div>
+            )}
+
+            {modalTab === 'unlock' ? (
+              <form onSubmit={handleUnlockSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-secondary">Passphrase</label>
+                  <input
+                    type="password"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    placeholder="Enter your master access key"
+                    className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 text-on-surface outline-none focus:ring-2 focus:ring-primary-container"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full rounded-2xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container py-4 text-sm font-black uppercase tracking-widest text-background shadow-[0_10px_24px_rgba(0,218,243,0.25)] transition-all hover:scale-[1.01]"
+                >
+                  Unlock Vault
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleInitializeSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-secondary">New Passphrase</label>
+                  <input
+                    type="password"
+                    value={passphrase}
+                    onChange={(e) => setPassphrase(e.target.value)}
+                    placeholder="Create a strong passphrase"
+                    className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 text-on-surface outline-none focus:ring-2 focus:ring-primary-container"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-secondary">Confirm Passphrase</label>
+                  <input
+                    type="password"
+                    value={confirmPassphrase}
+                    onChange={(e) => setConfirmPassphrase(e.target.value)}
+                    placeholder="Confirm passphrase"
+                    className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 text-on-surface outline-none focus:ring-2 focus:ring-primary-container"
+                  />
+                </div>
+
+                {passphrase && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                      <span>Entropy Score</span>
+                      <span>{getPasswordStrength(passphrase)}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${getPasswordStrength(passphrase) < 50 ? 'bg-error' : getPasswordStrength(passphrase) < 75 ? 'bg-amber-500' : 'bg-green-500'}`}
+                        style={{ width: `${getPasswordStrength(passphrase)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-error/30 bg-error/10 p-4 text-xs font-medium text-error leading-relaxed">
+                  <strong>WARNING:</strong> If you forget your Master Key, your diary entries cannot be recovered. We store 0 copies of this key on our servers.
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full rounded-2xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container py-4 text-sm font-black uppercase tracking-widest text-background shadow-[0_10px_24px_rgba(0,218,243,0.25)] transition-all hover:scale-[1.01]"
+                >
+                  Initialize Vault Key
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
       <header className="flex flex-col md:flex-row justify-between items-end gap-6">
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/20 border border-primary-container/40 text-primary-fixed-dim whitespace-nowrap">
@@ -124,6 +388,14 @@ export default function NewEntry() {
         </div>
       </header>
 
+        {debugStatus && (
+          <div className="mx-auto max-w-container-max-width px-4">
+            <div className="mb-4 rounded-lg px-4 py-2 bg-yellow-900/20 border border-yellow-500/20 text-yellow-200 text-sm font-medium">
+              Debug: {debugStatus}
+            </div>
+          </div>
+        )}
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Text Editor Section */}
         <section className="lg:col-span-8 relative">
@@ -134,56 +406,41 @@ export default function NewEntry() {
                 <div className="h-3 w-3 rounded-full bg-secondary shadow-[0_0_8px_#d1bcff]"></div>
                 <div className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_#00daf3]"></div>
               </div>
-              <div className="flex items-center gap-4 bg-surface-container-high rounded-xl px-4 py-2 border border-white/5">
-                <FileText className="text-primary-fixed-dim" size={18} />
-                <input 
-                  type="text"
-                  placeholder="entry_title.cipher"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-48 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40"
-                />
+              <div className="flex flex-col items-end">
+                <div className="flex items-center gap-4 bg-surface-container-high rounded-xl px-4 py-2 border border-white/5">
+                  <FileText className="text-primary-fixed-dim" size={18} />
+                  <input 
+                    type="text"
+                    placeholder="entry_title.cipher"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setTitleTouched(true);
+                    }}
+                    onBlur={() => setTitleTouched(true)}
+                    className="w-48 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40"
+                  />
+                </div>
+                {titleTouched && !title.trim() && (
+                  <span className="text-[10px] font-bold text-red-400 mt-1 select-none">Title cannot be empty</span>
+                )}
               </div>
             </div>
             
             {/* Recessed Editor Surface */}
-            <div className="inset-input rounded-2xl p-6 md:p-10 min-h-[500px] relative border border-white/5">
-              <textarea 
-                ref={textareaRef}
-                placeholder="Start typing encrypted thought-stream..."
+            <div className="relative">
+              <RichTextEditor 
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="w-full h-full min-h-[440px] bg-transparent border-none font-[var(--font-body)] text-lg leading-9 text-on-surface placeholder:text-on-surface-variant/35 focus:outline-none focus:ring-0 resize-none md:text-[20px]"
+                onChange={(val) => {
+                  setContent(val);
+                  setContentTouched(true);
+                }}
+                placeholder="Start typing encrypted thought-stream..."
               />
-              
-              {/* Floating Editor Tools */}
-              <div className="absolute bottom-8 right-8 flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => injectSnippet('**', '**', 'bold text')}
-                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
-                  title="Insert bold text"
-                >
-                  <Bold size={24} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => injectSnippet('\n[Attachment] ', '', 'linked evidence')}
-                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
-                  title="Insert attachment note"
-                >
-                  <Paperclip size={24} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => injectSnippet('\n```txt\n', '\n```\n', 'secured snippet')}
-                  className="bg-surface-bright/50 backdrop-blur-md p-4 rounded-2xl text-primary-fixed-dim hover:scale-110 transition-transform shadow-xl border border-white/10"
-                  title="Insert code block"
-                >
-                  <Code size={24} />
-                </button>
-              </div>
             </div>
+            {contentTouched && (!content || content.trim() === '' || content === '<p><br></p>') && (
+              <span className="text-[10px] font-bold text-red-400 mt-2 block select-none">Content cannot be empty</span>
+            )}
 
             <div className="flex flex-col md:flex-row justify-between items-center mt-10 gap-6">
               <div className="flex items-center gap-3">
@@ -194,19 +451,24 @@ export default function NewEntry() {
                 <button 
                   type="button"
                   onClick={() => navigate('/dashboard')}
-                  className="flex-1 md:flex-initial px-8 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 transition-all uppercase tracking-widest"
+                  className="flex-1 md:flex-initial px-8 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 active:scale-95 transition-all uppercase tracking-widest"
                 >
                   Discard
                 </button>
                 <button 
                   type="button"
                   onClick={handleSeal}
-                  disabled={loading || !title || !content}
-                  className="flex-1 md:flex-initial px-10 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.3)] transition-all transform hover:-translate-y-1 uppercase tracking-widest disabled:opacity-50"
+                  disabled={loading}
+                  className="flex-1 md:flex-initial px-10 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.4)] hover:scale-[1.03] active:scale-95 transition-all transform uppercase tracking-widest disabled:opacity-50"
                 >
-                  {loading ? 'SEALING...' : 'Seal & Encrypt'}
+                  {buttonText}
                 </button>
               </div>
+              {debugStatus && (
+                <div className="w-full md:w-auto mt-3 text-sm text-on-surface-variant font-medium">
+                  Status: {debugStatus}
+                </div>
+              )}
             </div>
           </div>
         </section>

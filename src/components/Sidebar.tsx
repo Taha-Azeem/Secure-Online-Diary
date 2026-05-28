@@ -66,10 +66,10 @@ export default function Sidebar() {
 
   const userLinks: NavItem[] = [
     { name: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard size={18} /> },
-    { name: 'Encrypted Journals', to: '/entries', icon: <BookOpen size={18} /> },
-    { name: 'Vault Center', to: '/vault', icon: <WalletCards size={18} /> },
-    { name: 'Security Keys', to: '/keys', icon: <FileKey size={18} /> },
-    { name: 'Access Logs', to: '/logs', icon: <History size={18} /> },
+    { name: 'My Vault', to: '/vault', icon: <WalletCards size={18} /> },
+    { name: 'New Entry', to: '/entry/new', icon: <FileText size={18} /> },
+    { name: 'Security Monitor', to: '/security', icon: <ShieldCheck size={18} /> },
+    { name: 'Notifications', to: '/notifications', icon: <Bell size={18} /> },
     { name: 'Settings', to: '/settings', icon: <Settings size={18} /> },
   ];
 

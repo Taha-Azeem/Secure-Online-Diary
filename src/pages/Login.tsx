@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AlertTriangle, Fingerprint, Key, Verified } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
+import { AppFooter } from '../components/Layout';
 
 export default function Login() {
   const { setVaultKey } = useAuth();
@@ -20,48 +21,84 @@ export default function Login() {
     setLoading(true);
 
     try {
+      // Sign in user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       setVaultKey(password);
 
-      await addDoc(collection(db, 'activityLogs'), {
+      // Fetch profile (blocks navigation until we have it)
+      const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
+      const role = profileSnap.exists() ? profileSnap.data().role : 'user';
+
+      // Fire-and-forget: write activity log in background (never blocks navigation)
+      addDoc(collection(db, 'activityLogs'), {
         userId: userCredential.user.uid,
         userEmail: userCredential.user.email,
         action: 'Login Success',
         resource: '/system/auth',
         timestamp: serverTimestamp(),
         status: 'SUCCESS',
-      });
+      }).catch(() => {});
 
-      const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
-      const role = profileSnap.exists() ? profileSnap.data().role : 'user';
       navigate(role === 'admin' ? '/admin' : '/dashboard');
     } catch (err) {
       console.error(err);
       setError('Authentication Failed: Invalid credentials or vault signature.');
 
+      // Security log is fire-and-forget on failure too
       if (email) {
-        await addDoc(collection(db, 'securityLogs'), {
+        addDoc(collection(db, 'securityLogs'), {
           type: 'AUTH',
           description: `Failed login attempt for ${email}`,
           timestamp: serverTimestamp(),
           severity: 'HIGH',
           ip: 'Logged',
-        });
+        }).catch(() => {});
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
+
+      // Fetch profile (blocks navigation)
+      const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
+      const role = profileSnap.exists() ? profileSnap.data().role : 'user';
+
+      // Fire-and-forget: write activity log in background
+      addDoc(collection(db, 'activityLogs'), {
+        userId: userCredential.user.uid,
+        userEmail: userCredential.user.email,
+        action: 'Login Success (Google)',
+        resource: '/system/auth',
+        timestamp: serverTimestamp(),
+        status: 'SUCCESS',
+      }).catch(() => {});
+
+      navigate(role === 'admin' ? '/admin' : '/dashboard');
+    } catch (err: any) {
+      console.error(err);
+      setError(`Google Authentication Failed: ${err.message || 'Error occurred.'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="bg-background text-on-background min-h-screen selection:bg-primary-container selection:text-on-primary-container overflow-hidden flex items-center justify-center p-gutter-md">
+    <div className="bg-background text-on-background min-h-screen selection:bg-primary-container selection:text-on-primary-container flex flex-col justify-between">
       <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(112,0,255,0.08),transparent)]" />
         <div className="absolute top-[10%] left-[10%] h-[400px] w-[400px] rounded-full bg-primary/5 blur-[100px]" />
         <div className="absolute bottom-[10%] right-[10%] h-[500px] w-[500px] rounded-full bg-secondary/5 blur-[120px]" />
       </div>
 
-      <main className="relative z-10 flex w-full items-center justify-center">
+      <main className="relative z-10 flex flex-grow w-full items-center justify-center py-16 px-4">
         <div className="w-full max-w-[480px] glass-panel rounded-xl p-margin-lg shadow-2xl relative transition-all hover:scale-[1.01]">
           <div className="absolute -top-16 left-1/2 flex h-32 w-32 -translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-surface-container-low p-4 shadow-2xl">
             <Fingerprint size={80} className="text-primary-fixed-dim drop-shadow-[0_0_30px_rgba(0,218,243,0.6)]" />
@@ -134,6 +171,42 @@ export default function Login() {
               <Verified size={24} />
               {loading ? 'INITIALIZING...' : 'Initialize Vault'}
             </button>
+
+            <div className="relative flex items-center justify-center my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-outline-variant/20"></div>
+              </div>
+              <span className="relative px-4 text-xs font-black uppercase tracking-widest text-on-surface-variant bg-surface-container-lowest/80 backdrop-blur-sm rounded-full">
+                OR
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest/50 py-4 text-lg font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <svg className="h-6 w-6" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.54 15.02 1 12 1 7.24 1 3.23 3.73 1.28 7.7l3.85 2.99C6.07 7.4 8.78 5.04 12 5.04z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.74-2.38 3.58l3.69 2.87c2.16-1.99 3.42-4.91 3.42-8.6z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.13 10.69c-.24-.7-.38-1.46-.38-2.24s.14-1.54.38-2.24L1.28 7.22C.46 8.85 0 10.68 0 12.6c0 1.92.46 3.75 1.28 5.38l3.85-2.99c-.24-.7-.38-1.46-.38-2.24z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c3.24 0 5.97-1.07 7.96-2.9l-3.69-2.87c-1.16.78-2.64 1.27-4.27 1.27-3.22 0-5.93-2.36-6.9-5.65L1.28 15.84C3.23 19.8 7.24 23 12 23z"
+                />
+              </svg>
+              Continue with Google
+            </button>
           </form>
 
           <p className="mt-8 text-center text-sm font-bold text-on-surface-variant">
@@ -153,15 +226,7 @@ export default function Login() {
         </div>
       </main>
 
-      <footer className="fixed bottom-0 w-full py-6">
-        <div className="flex flex-col items-center justify-center gap-6 px-margin-lg text-xs font-bold text-on-surface-variant/60 md:flex-row">
-          <span>© 2026 CipherDiary Secure Systems. AES-256 Bit Encrypted.</span>
-          <div className="flex gap-4">
-            <Link className="transition-colors hover:text-primary" to="/terms">Privacy Protocol</Link>
-            <Link className="transition-colors hover:text-primary" to="/security">Compliance</Link>
-          </div>
-        </div>
-      </footer>
+      <AppFooter />
     </div>
   );
 }

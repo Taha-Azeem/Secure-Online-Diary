@@ -22,23 +22,38 @@ import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
+import { useToast } from '../context/ToastContext';
 
 type EntryRecord = Record<string, any> | null;
 
 export default function ViewEntry() {
-  const { entryId } = useParams();
-  const { user, profile, vaultKey } = useAuth();
+  const { id } = useParams();
+  const { user, profile, vaultKey, setVaultKey } = useAuth();
+  const { showToast } = useToast();
   const [entry, setEntry] = useState<EntryRecord>(null);
-  const [decrypted, setDecrypted] = useState({ title: '', content: '' });
+  const [decrypted, setDecrypted] = useState({ title: '', content: '', category: '', securityLevel: '' });
   const [isDecrypted, setIsDecrypted] = useState(false);
   const [decryptError, setDecryptError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [passphrase, setPassphrase] = useState('');
+  const [modalError, setModalError] = useState('');
   const navigate = useNavigate();
+
+  const handleUnlockSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passphrase.trim()) {
+      setModalError('Passphrase cannot be empty.');
+      return;
+    }
+    setVaultKey(passphrase.trim());
+    setPassphrase('');
+    setModalError('');
+  };
 
   useEffect(() => {
     async function fetchEntry() {
-      if (!entryId || !user) return;
-      const docRef = doc(db, 'entries', entryId);
+      if (!id || !user) return;
+      const docRef = doc(db, 'entries', id);
       try {
         const docSnap = await getDoc(docRef);
 
@@ -49,27 +64,37 @@ export default function ViewEntry() {
             return;
           }
           setEntry({ id: docSnap.id, ...data });
-          if (vaultKey) {
-            const t = EncryptionService.decrypt(data.titleEncrypted, vaultKey);
-            const c = EncryptionService.decrypt(data.contentEncrypted, vaultKey);
+          if (vaultKey && data.salt && data.iv) {
+            const t = EncryptionService.decrypt(data.titleEncrypted, vaultKey, data.salt, data.iv);
+            const c = EncryptionService.decrypt(data.contentEncrypted, vaultKey, data.salt, data.iv);
+            const cat = EncryptionService.decrypt(data.categoryEncrypted, vaultKey, data.salt, data.iv);
+            const sec = EncryptionService.decrypt(data.securityLevelEncrypted, vaultKey, data.salt, data.iv);
             setDecrypted({
               title: t || 'Decryption Error',
               content: c || 'Failed to decrypt content with the current Master Access Key. Secure integrity check mismatch.',
+              category: cat || 'Unknown',
+              securityLevel: sec || 'Unknown'
             });
+            if (t && c) {
+              setIsDecrypted(true);
+            }
           }
         } else {
+          showToast('Entry not found in this vault.', 'error');
           navigate('/dashboard');
         }
       } catch (err) {
-        handleFirestoreError(err, OperationType.GET, `entries/${entryId}`);
+        handleFirestoreError(err, OperationType.GET, `entries/${id}`);
       }
       setLoading(false);
     }
     void fetchEntry();
-  }, [entryId, user, navigate]);
+  }, [id, user, navigate, vaultKey]);
 
   const encryptedTitle = useMemo(() => String(entry?.titleEncrypted || ''), [entry]);
   const encryptedContent = useMemo(() => String(entry?.contentEncrypted || ''), [entry]);
+  const encryptedCategory = useMemo(() => String(entry?.categoryEncrypted || ''), [entry]);
+  const encryptedSecurityLevel = useMemo(() => String(entry?.securityLevelEncrypted || ''), [entry]);
 
   const handleDecrypt = () => {
     if (!entry) return;
@@ -78,38 +103,56 @@ export default function ViewEntry() {
       return;
     }
 
-    const title = EncryptionService.decrypt(encryptedTitle, vaultKey);
-    const content = EncryptionService.decrypt(encryptedContent, vaultKey);
-
-    if (!title || !content) {
-      setDecryptError('Failed to decrypt this entry with the current Master Access Key.');
+    if (!entry.salt || !entry.iv) {
+      setDecryptError('Decryption parameters (salt/IV) missing for this entry.');
+      showToast('Decryption parameters missing.', 'error');
       setIsDecrypted(false);
       return;
     }
 
-    setDecrypted({ title, content });
+    const title = EncryptionService.decrypt(encryptedTitle, vaultKey, entry.salt, entry.iv);
+    const content = EncryptionService.decrypt(encryptedContent, vaultKey, entry.salt, entry.iv);
+    const category = EncryptionService.decrypt(encryptedCategory, vaultKey, entry.salt, entry.iv);
+    const securityLevel = EncryptionService.decrypt(encryptedSecurityLevel, vaultKey, entry.salt, entry.iv);
+
+    if (!title || !content) {
+      setDecryptError('Failed to decrypt this entry with the current Master Access Key.');
+      showToast('Failed to decrypt entry. Please check your Master Key.', 'error');
+      setIsDecrypted(false);
+      return;
+    }
+
+    setDecrypted({ title, content, category: category || 'Unknown', securityLevel: securityLevel || 'Unknown' });
     setDecryptError('');
     setIsDecrypted(true);
+    showToast('Entry decrypted successfully.', 'success');
   };
 
   const handleDelete = async () => {
-    if (!entryId || !window.confirm('CRITICAL: Permanent record purge requested. Proceed?')) return;
+    if (!vaultKey) {
+      showToast('Unlock your vault key first to delete entries.', 'error');
+      return;
+    }
+    if (!id || !window.confirm('CRITICAL: Permanent record purge requested. Proceed?')) return;
 
     try {
-      await deleteDoc(doc(db, 'entries', entryId));
+      await deleteDoc(doc(db, 'entries', id));
       await addDoc(collection(db, 'activityLogs'), {
         userId: user?.uid,
+        userEmail: user?.email,
         action: 'Purged Record',
-        resource: `/diary/private/${entryId}`,
+        resource: `/diary/private/${id}`,
         timestamp: serverTimestamp(),
         status: 'DELETED',
       }).catch((err) => {
         handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
       });
 
+      showToast('Entry deleted and purged from the vault.', 'success');
       navigate('/dashboard');
     } catch (err) {
-      handleFirestoreError(err, OperationType.DELETE, `entries/${entryId}`);
+      handleFirestoreError(err, OperationType.DELETE, `entries/${id}`);
+      showToast('Failed to delete entry.', 'error');
     }
   };
 
@@ -124,6 +167,48 @@ export default function ViewEntry() {
 
   return (
     <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg">
+      {/* Vault Key Modal - non-dismissible if not set */}
+      {!vaultKey && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
+          <div className="w-full max-w-lg bg-surface-container-low border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 shadow-[0_0_20px_rgba(0,218,243,0.3)]">
+                <Lock size={32} className="text-primary-fixed-dim" />
+              </div>
+              <h2 className="text-2xl font-extrabold text-white">Vault Access Verification</h2>
+              <p className="text-sm text-on-surface-variant">Unlock your vault key to view encrypted entries.</p>
+            </div>
+
+            {modalError && (
+              <div className="flex items-center gap-3 rounded-xl border border-error/50 bg-error/10 p-4 text-xs font-bold text-error animate-pulse">
+                <AlertOctagon size={16} />
+                {modalError}
+              </div>
+            )}
+
+            <form onSubmit={handleUnlockSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-secondary">Passphrase</label>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  placeholder="Enter your master access key"
+                  className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-lowest px-5 py-4 text-on-surface outline-none focus:ring-2 focus:ring-primary-container"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full rounded-2xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container py-4 text-sm font-black uppercase tracking-widest text-background shadow-[0_10px_24px_rgba(0,218,243,0.25)] transition-all hover:scale-[1.01]"
+              >
+                Unlock Vault
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+      {vaultKey && (
+        <>
       <button
         onClick={() => navigate('/dashboard')}
         className="mb-8 flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-bold text-sm uppercase tracking-widest"
@@ -252,10 +337,12 @@ export default function ViewEntry() {
                     <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
                       {isDecrypted ? 'Readable Entry View' : 'Ciphertext View'}
                     </p>
-                    <div className={`${isDecrypted ? 'font-[var(--font-body)] text-xl text-on-surface-variant leading-relaxed space-y-8' : 'font-[var(--font-mono)] text-sm text-primary-fixed-dim/90 leading-7 break-all whitespace-pre-wrap'}`}>
-                      {(isDecrypted ? decrypted.content : encryptedContent || 'No encrypted payload found.').split('\n').map((para, i) => (
-                        <p key={i}>{para}</p>
-                      ))}
+                    <div className={`${isDecrypted ? 'font-[var(--font-body)] text-xl text-on-surface-variant leading-relaxed rich-content-view' : 'font-[var(--font-mono)] text-sm text-primary-fixed-dim/90 leading-7 break-all whitespace-pre-wrap'}`}>
+                      {isDecrypted ? (
+                        <div dangerouslySetInnerHTML={{ __html: decrypted.content }} />
+                      ) : (
+                        <p>{encryptedContent || 'No encrypted payload found.'}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -284,6 +371,8 @@ export default function ViewEntry() {
           </div>
         </article>
       </div>
+        </>
+      )}
     </div>
   );
 }
