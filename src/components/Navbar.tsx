@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { LogOut, Menu, ShieldCheck, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -68,6 +69,25 @@ export default function Navbar() {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+    // closeMenu is stable enough here because it only depends on setMenuOpen
+  }, [menuOpen]);
+
   const closeMenu = () => setMenuOpen(false);
 
   const handleLogout = async () => {
@@ -75,6 +95,114 @@ export default function Navbar() {
     await logout();
     navigate('/login');
   };
+
+  const mobileMenu = menuOpen && typeof document !== 'undefined'
+    ? createPortal(
+        <div className="fixed inset-0 z-[100] lg:hidden" role="dialog" aria-modal="true" aria-label="Mobile navigation menu">
+          <button
+            type="button"
+            aria-label="Close navigation menu"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={closeMenu}
+          />
+
+          <aside className="absolute right-0 top-0 flex h-[100dvh] w-[min(22rem,88vw)] max-h-[100dvh] flex-col border-l border-outline-variant/20 bg-surface-container-low/98 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 pb-4 pt-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary-fixed-dim/25 bg-primary-fixed-dim/10 text-primary-fixed-dim">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <p className="text-base font-black tracking-tight text-on-surface">CipherDiary</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant">Mobile Menu</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeMenu}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-on-surface-variant transition-colors hover:border-primary-fixed-dim/30 hover:text-primary-fixed-dim"
+                aria-label="Close menu"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-5">
+              <div className="space-y-5">
+                {user ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant">Signed in as</p>
+                    <p className="mt-2 truncate text-lg font-bold text-on-surface">{profile?.displayName || 'Agent'}</p>
+                    <p className="mt-1 text-xs font-black uppercase tracking-[0.22em] text-primary-fixed-dim">
+                      {isAdmin ? 'Admin Clearance' : 'Private Vault'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-violet-600/10 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Welcome</p>
+                    <p className="mt-2 text-sm leading-6 text-on-surface-variant">
+                      Explore the platform, then sign in or register to unlock your secure vault.
+                    </p>
+                  </div>
+                )}
+
+                <nav className="space-y-2">
+                  {mobileLinks.map((link) => (
+                    <MobileNavLink key={link.to} link={link} onNavigate={closeMenu} />
+                  ))}
+                </nav>
+
+                <div className="space-y-3 border-t border-white/10 pt-4">
+                  {user ? (
+                    <>
+                      <Link
+                        to={dashboardPath}
+                        onClick={closeMenu}
+                        className="block rounded-xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container px-4 py-3 text-center text-sm font-black text-background transition-all hover:opacity-95"
+                      >
+                        Open {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-sm font-bold text-error transition-colors hover:bg-error/10"
+                      >
+                        <LogOut size={18} />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMenu();
+                          navigate('/login');
+                        }}
+                        className="w-full rounded-xl border border-primary-fixed-dim/30 px-4 py-3 text-sm font-bold text-primary-fixed-dim transition-colors hover:bg-primary-fixed-dim/10"
+                      >
+                        Login
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMenu();
+                          navigate('/register');
+                        }}
+                        className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-on-primary-container transition-all hover:-translate-y-0.5"
+                      >
+                        Initialize Vault
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>,
+        document.body,
+      )
+    : null;
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-outline-variant/30 bg-background/70 backdrop-blur-2xl">
@@ -139,109 +267,7 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-
-      {menuOpen ? (
-        <div className="fixed inset-0 z-[60] lg:hidden">
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={closeMenu}
-          />
-
-          <div className="absolute right-0 top-0 flex h-full w-[min(22rem,88vw)] flex-col border-l border-outline-variant/20 bg-surface-container-low/95 px-5 pb-6 pt-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary-fixed-dim/25 bg-primary-fixed-dim/10 text-primary-fixed-dim">
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <p className="text-base font-black tracking-tight text-on-surface">CipherDiary</p>
-                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant">Mobile Menu</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={closeMenu}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-on-surface-variant transition-colors hover:border-primary-fixed-dim/30 hover:text-primary-fixed-dim"
-                aria-label="Close menu"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="mt-5 flex-1 space-y-5 overflow-y-auto pr-1">
-              {user ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant">Signed in as</p>
-                  <p className="mt-2 truncate text-lg font-bold text-on-surface">{profile?.displayName || 'Agent'}</p>
-                  <p className="mt-1 text-xs font-black uppercase tracking-[0.22em] text-primary-fixed-dim">
-                    {isAdmin ? 'Admin Clearance' : 'Private Vault'}
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-cyan-500/10 to-violet-600/10 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Welcome</p>
-                  <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-                    Explore the platform, then sign in or register to unlock your secure vault.
-                  </p>
-                </div>
-              )}
-
-              <nav className="space-y-2">
-                {mobileLinks.map((link) => (
-                  <MobileNavLink key={link.to} link={link} onNavigate={closeMenu} />
-                ))}
-              </nav>
-
-              <div className="space-y-3 border-t border-white/10 pt-4">
-                {user ? (
-                  <>
-                    <Link
-                      to={dashboardPath}
-                      onClick={closeMenu}
-                      className="block rounded-xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container px-4 py-3 text-center text-sm font-black text-background transition-all hover:opacity-95"
-                    >
-                      Open {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-error/20 bg-error/5 px-4 py-3 text-sm font-bold text-error transition-colors hover:bg-error/10"
-                    >
-                      <LogOut size={18} />
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeMenu();
-                        navigate('/login');
-                      }}
-                      className="w-full rounded-xl border border-primary-fixed-dim/30 px-4 py-3 text-sm font-bold text-primary-fixed-dim transition-colors hover:bg-primary-fixed-dim/10"
-                    >
-                      Login
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        closeMenu();
-                        navigate('/register');
-                      }}
-                      className="w-full rounded-xl bg-cyan-500 px-4 py-3 text-sm font-bold text-on-primary-container transition-all hover:-translate-y-0.5"
-                    >
-                      Initialize Vault
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {mobileMenu}
     </nav>
   );
 }
