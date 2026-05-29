@@ -38,6 +38,31 @@ function MobileNavLink({ link, onNavigate }: { link: NavItem; onNavigate: () => 
   );
 }
 
+function MobileNavSection({
+  title,
+  links,
+  onNavigate,
+}: {
+  title: string;
+  links: NavItem[];
+  onNavigate: () => void;
+}) {
+  if (links.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="space-y-3">
+      <p className="px-1 text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant/80">{title}</p>
+      <div className="space-y-2">
+        {links.map((link) => (
+          <MobileNavLink key={link.to} link={link} onNavigate={onNavigate} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function Navbar() {
   const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
@@ -47,10 +72,23 @@ export default function Navbar() {
   const isAdmin = profile?.role === 'admin';
   const dashboardPath = isAdmin ? '/admin' : '/dashboard';
   const desktopLinks = publicNavLinks;
-  const mobileLinks = useMemo(
-    () => [...(user ? (isAdmin ? adminNavLinks : userNavLinks) : publicNavLinks), supportNavLink],
-    [isAdmin, user],
-  );
+  const mobileSections = useMemo(() => {
+    const sections: { title: string; links: NavItem[] }[] = [
+      { title: 'Explore', links: publicNavLinks },
+    ];
+
+    if (user) {
+      sections.push({ title: 'Workspace', links: userNavLinks });
+
+      if (isAdmin) {
+        sections.push({ title: 'Administration', links: adminNavLinks });
+      }
+    }
+
+    sections.push({ title: 'Help', links: [supportNavLink] });
+
+    return sections;
+  }, [isAdmin, user]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -106,7 +144,7 @@ export default function Navbar() {
             onClick={closeMenu}
           />
 
-          <aside className="absolute right-0 top-0 flex h-[100dvh] w-[min(22rem,88vw)] max-h-[100dvh] flex-col border-l border-outline-variant/20 bg-surface-container-low/98 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+          <aside className="absolute right-0 top-0 flex h-[100dvh] w-full max-w-[24rem] max-h-[100dvh] flex-col border-l border-outline-variant/20 bg-surface-container-low/98 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
             <div className="flex items-center justify-between border-b border-white/10 px-5 pb-4 pt-5">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary-fixed-dim/25 bg-primary-fixed-dim/10 text-primary-fixed-dim">
@@ -146,11 +184,32 @@ export default function Navbar() {
                   </div>
                 )}
 
-                <nav className="space-y-2">
-                  {mobileLinks.map((link) => (
-                    <MobileNavLink key={link.to} link={link} onNavigate={closeMenu} />
+                {user ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Link
+                      to={dashboardPath}
+                      onClick={closeMenu}
+                      className="flex min-h-20 flex-col justify-center rounded-2xl border border-primary-fixed-dim/30 bg-primary-fixed-dim/10 px-4 py-3 text-left shadow-[0_10px_24px_rgba(0,218,243,0.12)] transition-all hover:bg-primary-fixed-dim/15"
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-primary-fixed-dim/80">Quick Access</span>
+                      <span className="mt-1 text-sm font-bold text-on-surface">Dashboard</span>
+                    </Link>
+                    <Link
+                      to="/entry/new"
+                      onClick={closeMenu}
+                      className="flex min-h-20 flex-col justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-left shadow-[0_10px_24px_rgba(0,229,255,0.12)] transition-all hover:bg-cyan-500/15"
+                    >
+                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">Quick Action</span>
+                      <span className="mt-1 text-sm font-bold text-on-surface">New Entry</span>
+                    </Link>
+                  </div>
+                ) : null}
+
+                <div className="space-y-5">
+                  {mobileSections.map((section) => (
+                    <MobileNavSection key={section.title} title={section.title} links={section.links} onNavigate={closeMenu} />
                   ))}
-                </nav>
+                </div>
 
                 <div className="space-y-3 border-t border-white/10 pt-4">
                   {user ? (
