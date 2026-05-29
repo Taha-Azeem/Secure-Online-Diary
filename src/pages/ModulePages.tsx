@@ -33,6 +33,7 @@ import PricingTierCard from '../components/PricingTierCard';
 import StickyCTA from '../components/StickyCTA';
 import { addDoc, collection, deleteDoc, doc, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { createDiaryNotification } from '../lib/notifications';
 
 function ToggleRow({
   title,
@@ -279,6 +280,13 @@ export function SettingsPage() {
       const entriesSnap = await getDocs(query(collection(db, 'entries'), where('ownerId', '==', user.uid)));
       await Promise.all(entriesSnap.docs.map((entry) => deleteDoc(doc(db, 'entries', entry.id))));
       setVaultKey(null);
+
+      void createDiaryNotification(user.uid, 'purged', {
+        message: `Purged ${entriesSnap.size} encrypted entr${entriesSnap.size === 1 ? 'y' : 'ies'} from your vault.`,
+        priority: 'high',
+      }).catch((notificationErr) => {
+        console.warn('Failed to create purge notification (non-critical):', notificationErr);
+      });
 
       void addDoc(collection(db, 'activityLogs'), {
         userId: user.uid,

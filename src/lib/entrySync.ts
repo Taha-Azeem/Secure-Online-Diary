@@ -1,5 +1,6 @@
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from './firebase';
+import { createDiaryNotification } from './notifications';
 
 export type PendingEntry = {
   ownerId: string;
@@ -79,6 +80,9 @@ export async function syncPendingEntries(userId: string) {
         iv: entry.iv,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+      });
+      void createDiaryNotification(userId, 'synced').catch((notificationErr) => {
+        console.warn('Failed to create synced entry notification (non-critical):', notificationErr);
       });
       syncedCount += 1;
     } catch (error) {

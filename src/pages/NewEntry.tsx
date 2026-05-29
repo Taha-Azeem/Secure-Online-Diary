@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { createDiaryNotification } from '../lib/notifications';
 import { syncPendingEntries } from '../lib/entrySync';
 import { useNavigate } from 'react-router-dom';
 import CryptoJS from 'crypto-js';
@@ -155,6 +156,10 @@ export default function NewEntry() {
           iv: ivHex,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
+        });
+
+        void createDiaryNotification(user.uid, 'created').catch((notificationErr) => {
+          console.warn('Failed to create entry notification (non-critical):', notificationErr);
         });
       } catch (writeErr: any) {
         console.warn('Entry write failed:', writeErr);

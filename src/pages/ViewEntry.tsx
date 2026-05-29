@@ -21,6 +21,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { db } from '../lib/firebase';
+import { createDiaryNotification } from '../lib/notifications';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { useToast } from '../context/ToastContext';
 
@@ -137,6 +138,11 @@ export default function ViewEntry() {
 
     try {
       await deleteDoc(doc(db, 'entries', id));
+      if (user?.uid) {
+        void createDiaryNotification(user.uid, 'deleted').catch((notificationErr) => {
+          console.warn('Failed to create delete notification (non-critical):', notificationErr);
+        });
+      }
       void addDoc(collection(db, 'activityLogs'), {
         userId: user?.uid,
         userEmail: user?.email,
