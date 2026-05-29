@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { addDoc, collection, doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { AlertTriangle, Ghost, Key, Mail, Rocket, Shield, UserPlus } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { AppFooter } from '../components/Layout';
@@ -29,7 +28,6 @@ const getPasswordStrength = (pass: string) => {
 };
 
 export default function Register() {
-  const { setVaultKey } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -65,7 +63,6 @@ export default function Register() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
-      setVaultKey(formData.password);
 
       await updateProfile(user, { displayName: formData.username });
 

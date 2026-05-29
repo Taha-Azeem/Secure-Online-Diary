@@ -33,27 +33,15 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const VAULT_KEY_STORAGE = 'cipherdiary:vault-key';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [vaultKey, setVaultKeyState] = useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    return window.sessionStorage.getItem(VAULT_KEY_STORAGE);
-  });
+  const [vaultKey, setVaultKeyState] = useState<string | null>(null);
 
   const setVaultKey = (key: string | null) => {
     setVaultKeyState(key);
-
-    if (typeof window === 'undefined') return;
-
-    if (key) {
-      window.sessionStorage.setItem(VAULT_KEY_STORAGE, key);
-    } else {
-      window.sessionStorage.removeItem(VAULT_KEY_STORAGE);
-    }
   };
 
   useEffect(() => {

@@ -110,9 +110,10 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
 }
 
 function AppShell() {
-  const { user } = useAuth();
+  const { user, vaultKey, setVaultKey } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const previousPathRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (!user) {
@@ -164,6 +165,27 @@ function AppShell() {
       window.sessionStorage.setItem(routeKey, currentRoute);
     }
   }, [location.pathname, location.search, navigate, user]);
+
+  React.useEffect(() => {
+    if (!user) {
+      previousPathRef.current = location.pathname;
+      return;
+    }
+
+    const previousPath = previousPathRef.current;
+    previousPathRef.current = location.pathname;
+
+    if (!previousPath || previousPath === location.pathname) {
+      return;
+    }
+
+    const protectedRoutes = ['/dashboard', '/vault', '/entry', '/security', '/settings', '/notifications', '/admin'];
+    const isProtectedRoute = protectedRoutes.some((prefix) => location.pathname === prefix || location.pathname.startsWith(`${prefix}/`));
+
+    if (isProtectedRoute && vaultKey) {
+      setVaultKey(null);
+    }
+  }, [location.pathname, setVaultKey, user, vaultKey]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">

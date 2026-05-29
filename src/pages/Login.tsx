@@ -3,12 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { AlertTriangle, Fingerprint, Key, Verified } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../lib/firebase';
 import { AppFooter } from '../components/Layout';
 
 export default function Login() {
-  const { setVaultKey } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,7 +21,6 @@ export default function Login() {
     try {
       // Sign in user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setVaultKey(password);
 
       // Fetch profile (blocks navigation until we have it)
       const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
@@ -66,7 +63,6 @@ export default function Login() {
     try {
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(auth, provider);
-
       // Fetch profile (blocks navigation)
       const profileSnap = await getDoc(doc(db, 'users', userCredential.user.uid));
       const role = profileSnap.exists() ? profileSnap.data().role : 'user';
