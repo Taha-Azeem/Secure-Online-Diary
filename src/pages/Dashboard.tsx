@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, limit, onSnapshot, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { EncryptionService } from '../lib/encryption';
@@ -58,6 +58,24 @@ export default function Dashboard() {
   const [modalTab, setModalTab] = useState<'unlock' | 'initialize'>('unlock');
   const [modalError, setModalError] = useState('');
 
+  const sortByDescendingTime = <T extends { createdAt?: any; timestamp?: any; updatedAt?: any }>(items: T[]) => {
+    return [...items].sort((left, right) => {
+      const getTime = (value: any) => {
+        if (!value) return 0;
+        if (typeof value.toDate === 'function') return value.toDate().getTime();
+        if (typeof value.toMillis === 'function') return value.toMillis();
+        if (value instanceof Date) return value.getTime();
+        return 0;
+      };
+
+      return Math.max(getTime(right.createdAt), getTime(right.timestamp), getTime(right.updatedAt)) - Math.max(
+        getTime(left.createdAt),
+        getTime(left.timestamp),
+        getTime(left.updatedAt),
+      );
+    });
+  };
+
   const getPasswordStrength = (pass: string) => {
     let score = 0;
     if (!pass) return 0;
@@ -103,7 +121,6 @@ export default function Dashboard() {
     const qEntries = query(
       collection(db, 'entries'),
       where('ownerId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
       limit(5)
     );
 
@@ -113,7 +130,7 @@ export default function Dashboard() {
         ...doc.data()
       })) as EntryPreview[];
 
-      const merged = loadLocalEntries(entryList);
+      const merged = sortByDescendingTime(loadLocalEntries(entryList));
       setEntries(merged);
 
       // Calculate entries encrypted today
@@ -138,15 +155,14 @@ export default function Dashboard() {
     const qLogs = query(
       collection(db, 'activityLogs'),
       where('userId', '==', user.uid),
-      orderBy('timestamp', 'desc'),
       limit(5)
     );
 
     const unsubscribeLogs = onSnapshot(qLogs, (snapshot) => {
-      setActivityLogs(snapshot.docs.map(doc => ({
+      setActivityLogs(sortByDescendingTime(snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })) as ActivityLog[]);
+      })) as ActivityLog[]));
     });
 
     // Listen to notifications unread count

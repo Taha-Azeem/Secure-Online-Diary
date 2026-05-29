@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useToast } from '../context/ToastContext';
 import { format } from 'date-fns';
@@ -35,13 +35,26 @@ export default function SecurityMonitor() {
   const [scanStep, setScanStep] = useState('');
   const [scanLogs, setScanLogs] = useState<string[]>([]);
 
+  const sortByNewest = (items: ActivityLog[]) => {
+    return [...items].sort((left, right) => {
+      const getTime = (value: any) => {
+        if (!value) return 0;
+        if (typeof value.toDate === 'function') return value.toDate().getTime();
+        if (typeof value.toMillis === 'function') return value.toMillis();
+        if (value instanceof Date) return value.getTime();
+        return 0;
+      };
+
+      return getTime(right.timestamp) - getTime(left.timestamp);
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
 
     const q = query(
       collection(db, 'activityLogs'),
       where('userId', '==', user.uid),
-      orderBy('timestamp', 'desc'),
       limit(15)
     );
 
@@ -52,7 +65,7 @@ export default function SecurityMonitor() {
           id: doc.id,
           ...doc.data(),
         })) as ActivityLog[];
-        setLogs(list);
+        setLogs(sortByNewest(list));
         setLoadingLogs(false);
       },
       (err) => {

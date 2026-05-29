@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, orderBy, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useToast } from '../context/ToastContext';
 import { format } from 'date-fns';
@@ -32,13 +32,26 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
+  const sortByNewest = (items: NotificationItem[]) => {
+    return [...items].sort((left, right) => {
+      const getTime = (value: any) => {
+        if (!value) return 0;
+        if (typeof value.toDate === 'function') return value.toDate().getTime();
+        if (typeof value.toMillis === 'function') return value.toMillis();
+        if (value instanceof Date) return value.getTime();
+        return 0;
+      };
+
+      return getTime(right.timestamp) - getTime(left.timestamp);
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
 
     const q = query(
       collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      orderBy('timestamp', 'desc')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
@@ -48,7 +61,7 @@ export default function Notifications() {
           id: doc.id,
           ...doc.data(),
         })) as NotificationItem[];
-        setNotifications(list);
+        setNotifications(sortByNewest(list));
         setLoading(false);
       },
       (err) => {

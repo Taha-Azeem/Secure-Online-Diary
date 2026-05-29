@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, orderBy, onSnapshot, deleteDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, deleteDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { EncryptionService } from '../lib/encryption';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
@@ -46,6 +46,20 @@ export default function Vault() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
+  const sortByNewest = (items: VaultEntry[]) => {
+    return [...items].sort((left, right) => {
+      const getTime = (value: any) => {
+        if (!value) return 0;
+        if (typeof value.toDate === 'function') return value.toDate().getTime();
+        if (typeof value.toMillis === 'function') return value.toMillis();
+        if (value instanceof Date) return value.getTime();
+        return 0;
+      };
+
+      return getTime(right.createdAt) - getTime(left.createdAt);
+    });
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -85,8 +99,7 @@ export default function Vault() {
 
     const q = query(
       collection(db, 'entries'),
-      where('ownerId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('ownerId', '==', user.uid)
     );
 
     const unsubscribe = onSnapshot(
@@ -96,13 +109,13 @@ export default function Vault() {
           id: doc.id,
           ...doc.data(),
         })) as VaultEntry[];
-        setEntries(loadLocalEntries(list));
+        setEntries(sortByNewest(loadLocalEntries(list)));
         setLoading(false);
       },
       (err) => {
         setLoading(false);
         handleFirestoreError(err, OperationType.GET, 'entries');
-        setEntries(loadLocalEntries([]));
+        setEntries(sortByNewest(loadLocalEntries([])));
       }
     );
 
