@@ -149,16 +149,16 @@ export default function Register() {
       </div>
 
       <header className="fixed top-0 z-50 w-full border-b border-outline-variant/50 bg-surface/30 shadow-[0_4px_30px_rgba(0,0,0,0.1)] backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-container-max-width items-center justify-between px-margin-lg py-4">
-          <Link to="/" className="text-4xl font-extrabold text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,218,243,0.5)]">
+        <div className="mx-auto flex w-full max-w-container-max-width items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 md:px-margin-lg">
+          <Link to="/" className="text-2xl font-extrabold text-primary-fixed-dim drop-shadow-[0_0_10px_rgba(0,218,243,0.5)] sm:text-4xl">
             CipherDiary
           </Link>
-          <div className="flex gap-4">
-            <Link to="/login" className="px-4 py-2 font-bold text-on-surface-variant transition-all duration-300 hover:text-primary">Login</Link>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link to="/login" className="px-3 py-2 text-sm font-bold text-on-surface-variant transition-all duration-300 hover:text-primary sm:px-4">Login</Link>
             <button
               type="button"
               onClick={() => navigate('/register')}
-              className="rounded-xl bg-primary-container px-6 py-2 font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all hover:scale-105 active:scale-95"
+              className="rounded-xl bg-primary-container px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.3)] transition-all hover:scale-105 active:scale-95 sm:px-6"
             >
               Initialize Vault
             </button>
@@ -166,20 +166,20 @@ export default function Register() {
         </div>
       </header>
 
-      <main className="flex w-full flex-grow items-center justify-center px-gutter-md pb-margin-lg pt-32">
-        <div className="relative flex w-full max-w-[1200px] flex-col items-center gap-16 lg:flex-row">
+      <main className="flex w-full flex-grow items-center justify-center px-4 pb-10 pt-24 sm:px-gutter-md sm:pb-margin-lg sm:pt-32">
+        <div className="relative flex w-full max-w-[1200px] flex-col items-center gap-10 lg:flex-row lg:gap-16">
           <div className="relative z-10 w-full space-y-8 lg:w-1/2">
             <div className="inline-flex items-center gap-2 rounded-full border border-secondary/30 bg-secondary-container/20 px-4 py-1.5">
               <Shield size={16} className="text-secondary" />
               <span className="text-xs font-black uppercase tracking-widest text-secondary">Protocol v4.0 Active</span>
             </div>
-            <h1 className="text-6xl font-black leading-[1.1] text-primary">
+            <h1 className="text-4xl font-black leading-[1.1] text-primary sm:text-5xl lg:text-6xl">
               Establish Your <br /> <span className="text-primary-fixed-dim">Digital Sovereignty</span>
             </h1>
             <p className="max-w-md text-lg leading-relaxed text-on-surface-variant">
               Start your private writing journey. Your entries are fully encrypted on your device using zero-knowledge architecture before uploading, so only you can unlock them.
             </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-surface-container-low/40 p-4 shadow-lg backdrop-blur-xl">
                 <div className="text-primary-fixed-dim"><Shield size={24} /></div>
                 <div>
@@ -198,7 +198,7 @@ export default function Register() {
           </div>
 
           <div className="relative w-full lg:w-1/2">
-            <div className="glass-panel relative z-10 rounded-2xl p-10 shadow-2xl">
+            <div className="glass-panel relative z-10 rounded-2xl p-6 shadow-2xl sm:p-8 lg:p-10">
               <form onSubmit={handleRegister} className="space-y-6">
                 <div className="mb-4">
                   <h2 className="text-2xl font-black text-on-surface tracking-tight">Create Secure Vault</h2>
@@ -301,7 +301,7 @@ export default function Register() {
                 </div>
 
                 {/* Zero-Knowledge Consent Checkbox */}
-                <div className="flex items-start gap-3 py-2">
+                <div className="flex flex-col gap-3 py-2 sm:flex-row">
                   <input
                     id="consentChecked"
                     type="checkbox"
@@ -317,7 +317,7 @@ export default function Register() {
                 <div className="pt-4">
                   <button
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-5 text-xl font-black text-background shadow-[0_15px_30px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(112,0,255,0.4)] active:scale-[0.98] disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-primary-container to-secondary-container py-4 text-base font-black text-background shadow-[0_15px_30px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(112,0,255,0.4)] active:scale-[0.98] disabled:opacity-50 sm:py-5 sm:text-xl"
                   >
                     <span>{loading ? 'INITIALIZING...' : 'Initialize Vault'}</span>
                     <Rocket size={24} />
@@ -336,7 +336,7 @@ export default function Register() {
                     type="button"
                     onClick={handleGoogleRegister}
                     disabled={loading}
-                    className="flex w-full items-center justify-center gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 py-5 text-xl font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex w-full items-center justify-center gap-3 rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 py-4 text-base font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:py-5 sm:text-xl"
                   >
                     <svg className="h-6 w-6" viewBox="0 0 24 24">
                       <path

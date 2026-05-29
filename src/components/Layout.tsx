@@ -114,7 +114,7 @@ function AppShell() {
       <BackgroundGlow />
       <Navbar />
       <Sidebar />
-      <main className="min-h-screen overflow-x-hidden pb-10 pt-24 md:ml-72">
+      <main className="min-h-screen overflow-x-hidden pb-10 pt-20 sm:pt-24 md:ml-72">
         <Outlet />
       </main>
       <AppFooter withSidebarOffset />
@@ -127,7 +127,7 @@ export function PublicLayout() {
     <div className="min-h-screen bg-background text-on-surface">
       <BackgroundGlow />
       <Navbar />
-      <main className="min-h-screen overflow-x-hidden pb-10 pt-24">
+      <main className="min-h-screen overflow-x-hidden pb-10 pt-20 sm:pt-24">
         <Outlet />
       </main>
       <AppFooter />

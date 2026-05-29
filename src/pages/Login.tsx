@@ -98,14 +98,14 @@ export default function Login() {
         <div className="absolute bottom-[10%] right-[10%] h-[500px] w-[500px] rounded-full bg-secondary/5 blur-[120px]" />
       </div>
 
-      <main className="relative z-10 flex flex-grow w-full items-center justify-center py-16 px-4">
-        <div className="w-full max-w-[480px] glass-panel rounded-xl p-margin-lg shadow-2xl relative transition-all hover:scale-[1.01]">
-          <div className="absolute -top-16 left-1/2 flex h-32 w-32 -translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-surface-container-low p-4 shadow-2xl">
-            <Fingerprint size={80} className="text-primary-fixed-dim drop-shadow-[0_0_30px_rgba(0,218,243,0.6)]" />
+      <main className="relative z-10 flex w-full flex-grow items-center justify-center px-4 py-12 sm:py-16">
+        <div className="relative w-full max-w-[480px] rounded-xl p-6 shadow-2xl transition-all hover:scale-[1.01] sm:p-margin-lg glass-panel">
+          <div className="absolute -top-12 left-1/2 flex h-24 w-24 -translate-x-1/2 items-center justify-center rounded-full border border-white/10 bg-surface-container-low p-3 shadow-2xl sm:-top-16 sm:h-32 sm:w-32 sm:p-4">
+            <Fingerprint className="h-12 w-12 text-primary-fixed-dim drop-shadow-[0_0_30px_rgba(0,218,243,0.6)] sm:h-20 sm:w-20" />
           </div>
 
-          <div className="mt-12 text-center">
-            <h1 className="mb-2 text-4xl font-extrabold tracking-tight text-primary-fixed-dim">CipherDiary</h1>
+          <div className="mt-10 text-center sm:mt-12">
+            <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-primary-fixed-dim sm:text-4xl">CipherDiary</h1>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-on-surface-variant/70">Protocol Status: Authentication Required</p>
           </div>
 
@@ -153,11 +153,11 @@ export default function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between py-2">
-              <label className="group flex cursor-pointer items-center gap-2">
-                <input type="checkbox" className="h-4 w-4 rounded border-outline-variant bg-surface-container text-secondary focus:ring-secondary focus:ring-offset-background" />
-                <span className="text-sm font-bold text-on-surface-variant transition-colors group-hover:text-on-surface">Stay linked</span>
-              </label>
+              <div className="flex flex-col gap-2 py-2 sm:flex-row sm:items-center sm:justify-between">
+                <label className="group flex cursor-pointer items-center gap-2">
+                  <input type="checkbox" className="h-4 w-4 rounded border-outline-variant bg-surface-container text-secondary focus:ring-secondary focus:ring-offset-background" />
+                  <span className="text-sm font-bold text-on-surface-variant transition-colors group-hover:text-on-surface">Stay linked</span>
+                </label>
               <Link to="/forgot-password" className="text-sm font-bold text-primary-fixed-dim underline-offset-4 transition-colors hover:text-primary hover:underline">
                 Lost access protocol?
               </Link>
@@ -166,7 +166,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container py-4 text-lg font-extrabold text-background shadow-[0_10px_20px_rgba(0,218,243,0.3)] transition-all hover:shadow-[0_15px_30px_rgba(0,218,243,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-primary-fixed-dim to-secondary-container py-4 text-base font-extrabold text-background shadow-[0_10px_20px_rgba(0,218,243,0.3)] transition-all hover:shadow-[0_15px_30px_rgba(0,218,243,0.4)] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg"
             >
               <Verified size={24} />
               {loading ? 'INITIALIZING...' : 'Initialize Vault'}
@@ -185,7 +185,7 @@ export default function Login() {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest/50 py-4 text-lg font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest/50 py-4 text-base font-bold text-on-surface transition-all hover:bg-surface-container-low active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:text-lg"
             >
               <svg className="h-6 w-6" viewBox="0 0 24 24">
                 <path
@@ -213,7 +213,7 @@ export default function Login() {
             New node cluster? <Link to="/register" className="text-primary-fixed-dim hover:underline">Register Identity</Link>
           </p>
 
-          <div className="mt-12 flex justify-center gap-4">
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:mt-12 sm:flex-row sm:gap-4">
             <div className="flex items-center gap-2 rounded-full border border-outline-variant/30 bg-surface-container-highest/50 px-3 py-1.5">
               <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_#00daf3]" />
               <span className="text-[10px] font-black uppercase tracking-tight text-on-surface-variant">AES-256 ACTIVE</span>

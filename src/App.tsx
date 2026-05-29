@@ -80,13 +80,13 @@ export default function App() {
             </Route>
 
             <Route path="/forbidden" element={
-              <div className="min-h-screen bg-background flex flex-col items-center justify-center p-12 text-center space-y-8">
-                <div className="w-40 h-40 flex items-center justify-center rounded-full border-4 border-error shadow-[0_0_50px_rgba(255,180,171,0.4)]">
-                  <span className="material-symbols-outlined text-[100px] text-error font-black" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
+              <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-center space-y-6 sm:p-12 sm:space-y-8">
+                <div className="flex h-28 w-28 items-center justify-center rounded-full border-4 border-error shadow-[0_0_50px_rgba(255,180,171,0.4)] sm:h-40 sm:w-40">
+                  <span className="material-symbols-outlined text-[72px] text-error font-black sm:text-[100px]" style={{ fontVariationSettings: "'FILL' 1" }}>security</span>
                 </div>
-                <h1 className="text-4xl font-extrabold text-error">UNAUTHORIZED ACCESS DETECTED</h1>
-                <p className="text-on-surface-variant max-w-md">Your security clearance does not permit entry into this sector. IP logged. Protocol 403 active.</p>
-                <button onClick={() => window.location.href = import.meta.env.BASE_URL} className="px-8 py-4 bg-error text-white rounded-full font-bold uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95">Return to Secure Checkpoint</button>
+                <h1 className="text-2xl font-extrabold text-error sm:text-4xl">UNAUTHORIZED ACCESS DETECTED</h1>
+                <p className="max-w-md text-sm text-on-surface-variant sm:text-base">Your security clearance does not permit entry into this sector. IP logged. Protocol 403 active.</p>
+                <button onClick={() => window.location.href = import.meta.env.BASE_URL} className="rounded-full bg-error px-6 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-xl transition-all hover:scale-105 active:scale-95 sm:px-8 sm:py-4">Return to Secure Checkpoint</button>
               </div>
             } />
             

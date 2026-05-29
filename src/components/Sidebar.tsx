@@ -1,29 +1,8 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import {
-  Bell,
-  BookOpen,
-  Database,
-  FileBarChart2,
-  FileKey,
-  FileText,
-  HelpCircle,
-  History,
-  LayoutDashboard,
-  Lock,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  Users,
-  WalletCards,
-} from 'lucide-react';
+import { Lock, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-type NavItem = {
-  name: string;
-  to: string;
-  icon: React.ReactNode;
-};
+import { adminNavLinks, supportNavLink, userNavLinks, type NavItem } from '../config/navigation';
 
 function NavSection({ title, links }: { title: string; links: NavItem[] }) {
   return (
@@ -44,7 +23,9 @@ function NavSection({ title, links }: { title: string; links: NavItem[] }) {
               ].join(' ')
             }
           >
-            <span className="flex shrink-0 items-center justify-center text-primary-fixed-dim">{link.icon}</span>
+            <span className="flex shrink-0 items-center justify-center text-primary-fixed-dim">
+              <link.icon size={18} />
+            </span>
             <span className="min-w-0 truncate text-sm font-semibold">{link.name}</span>
           </NavLink>
         ))}
@@ -56,6 +37,7 @@ function NavSection({ title, links }: { title: string; links: NavItem[] }) {
 export default function Sidebar() {
   const { profile, logout } = useAuth();
   const navigate = useNavigate();
+  const SupportIcon = supportNavLink.icon;
 
   const handleLogout = async () => {
     await logout();
@@ -63,27 +45,6 @@ export default function Sidebar() {
   };
 
   const isAdmin = profile?.role === 'admin';
-
-  const userLinks: NavItem[] = [
-    { name: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard size={18} /> },
-    { name: 'My Vault', to: '/vault', icon: <WalletCards size={18} /> },
-    { name: 'New Entry', to: '/entry/new', icon: <FileText size={18} /> },
-    { name: 'Security Monitor', to: '/security', icon: <ShieldCheck size={18} /> },
-    { name: 'Notifications', to: '/notifications', icon: <Bell size={18} /> },
-    { name: 'Settings', to: '/settings', icon: <Settings size={18} /> },
-  ];
-
-  const adminLinks: NavItem[] = [
-    { name: 'Admin Dashboard', to: '/admin', icon: <LayoutDashboard size={18} /> },
-    { name: 'User Management', to: '/admin/users', icon: <Users size={18} /> },
-    { name: 'Diary Monitoring', to: '/admin/diaries', icon: <BookOpen size={18} /> },
-    { name: 'Security Center', to: '/admin/security', icon: <ShieldCheck size={18} /> },
-    { name: 'Activity Logs', to: '/admin/logs', icon: <FileText size={18} /> },
-    { name: 'Database Control', to: '/admin/database', icon: <Database size={18} /> },
-    { name: 'Notifications', to: '/admin/notifications', icon: <Bell size={18} /> },
-    { name: 'Reports', to: '/admin/reports', icon: <FileBarChart2 size={18} /> },
-    { name: 'Admin Settings', to: '/admin/settings', icon: <Settings size={18} /> },
-  ];
 
   return (
     <aside className="hidden md:flex md:fixed md:left-0 md:top-0 md:z-40 md:h-screen md:w-72 md:flex-col md:border-r md:border-outline-variant/25 md:bg-surface-container-low/75 md:px-5 md:pb-5 md:pt-24 md:backdrop-blur-2xl">
@@ -102,8 +63,8 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto pr-1 no-scrollbar">
-        <NavSection title="Workspace" links={userLinks} />
-        {isAdmin ? <NavSection title="Administration" links={adminLinks} /> : null}
+        <NavSection title="Workspace" links={userNavLinks} />
+        {isAdmin ? <NavSection title="Administration" links={adminNavLinks} /> : null}
       </nav>
 
       <div className="mt-6 space-y-2 border-t border-outline-variant/25 pt-5">
@@ -112,7 +73,7 @@ export default function Sidebar() {
           className="grid min-h-14 grid-cols-[22px,1fr] items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-on-surface-variant transition-all hover:border-white/10 hover:bg-white/5 hover:text-on-surface"
         >
           <span className="flex items-center justify-center text-primary-fixed-dim">
-            <HelpCircle size={18} />
+            <SupportIcon size={18} />
           </span>
           <span className="truncate text-sm font-semibold">Support</span>
         </NavLink>

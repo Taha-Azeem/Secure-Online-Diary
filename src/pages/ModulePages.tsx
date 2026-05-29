@@ -660,7 +660,7 @@ export function PricingPage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-4 pb-10 md:px-8">
-        <div className="grid gap-4 rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/10 to-violet-600/10 p-8 backdrop-blur-xl sm:grid-cols-3">
+        <div className="grid gap-4 rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/10 to-violet-600/10 p-6 backdrop-blur-xl sm:grid-cols-3 sm:p-8">
           {[
             { icon: Lock, title: 'AES-256 Encryption', body: 'Every entry encrypted client-side before it leaves your device.' },
             { icon: ShieldCheck, title: 'Zero-Knowledge', body: 'We never hold your decryption keys — only you can read your data.' },
@@ -762,7 +762,7 @@ export function AboutPage() {
           <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-5 py-2 text-xs font-black uppercase tracking-widest text-cyan-400">
             <ShieldCheck size={13} /> Our Story
           </span>
-          <h1 className="gradient-heading text-5xl font-extrabold leading-tight md:text-7xl">
+          <h1 className="gradient-heading text-4xl font-extrabold leading-tight sm:text-5xl md:text-7xl">
             Private writing.<br />Actually private.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-on-surface-variant">
@@ -783,7 +783,7 @@ export function AboutPage() {
 
       {/* ── STATS BAR ── */}
       <section className="mx-auto max-w-5xl px-4 pb-16 md:px-8">
-        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl md:grid-cols-4 sm:p-6">
           {stats.map(s => (
             <div key={s.label} className="text-center">
               <p className="text-3xl font-extrabold text-white md:text-4xl">{s.value}</p>
@@ -795,7 +795,7 @@ export function AboutPage() {
 
       {/* ── MISSION STATEMENT ── */}
       <section className="mx-auto max-w-5xl px-4 pb-20 md:px-8">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600/10 to-cyan-500/10 p-10 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-violet-600/10 to-cyan-500/10 p-6 backdrop-blur-xl sm:p-10">
           <p className="text-[11px] font-black uppercase tracking-widest text-cyan-400">Our Mission</p>
           <h2 className="mt-4 text-3xl font-extrabold text-white md:text-4xl">
             We believe digital privacy is a human right — not a premium feature.
@@ -826,8 +826,8 @@ export function AboutPage() {
             { step: '03', title: 'AES-256 GCM encryption', body: 'The key and IV encrypt your entry using AES-256 GCM, producing ciphertext plus a 128-bit authentication tag that detects any tampering.' },
             { step: '04', title: 'Upload encrypted blob', body: 'The IV, ciphertext, and auth tag are bundled into a single blob and uploaded to Firebase. Our servers receive nothing but random-looking bytes.' },
           ].map(({ step, title, body }) => (
-            <div key={step} className="flex gap-6 rounded-2xl border border-white/8 bg-white/3 p-6 backdrop-blur-sm transition-all hover:border-cyan-500/20 hover:bg-white/5">
-              <span className="shrink-0 font-mono text-4xl font-black text-cyan-500/30">{step}</span>
+            <div key={step} className="flex flex-col gap-4 rounded-2xl border border-white/8 bg-white/3 p-5 backdrop-blur-sm transition-all hover:border-cyan-500/20 hover:bg-white/5 sm:flex-row sm:gap-6 sm:p-6">
+              <span className="shrink-0 font-mono text-3xl font-black text-cyan-500/30 sm:text-4xl">{step}</span>
               <div>
                 <h3 className="text-lg font-bold text-white">{title}</h3>
                 <p className="mt-2 text-sm leading-7 text-on-surface-variant">{body}</p>
@@ -871,7 +871,7 @@ export function AboutPage() {
 
       {/* ── CTA ── */}
       <section className="mx-auto max-w-5xl px-4 pb-16 md:px-8">
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/15 to-violet-600/15 p-12 text-center backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-cyan-500/15 to-violet-600/15 p-6 text-center backdrop-blur-xl sm:p-12">
           <div className="hero-bg" />
           <div className="relative z-10">
             <h2 className="text-3xl font-extrabold text-white md:text-4xl">Ready to own your words?</h2>

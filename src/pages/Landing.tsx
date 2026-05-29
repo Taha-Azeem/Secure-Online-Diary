@@ -75,7 +75,7 @@ export default function Landing() {
     <div className="bg-background text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container overflow-x-hidden">
       <Navbar />
       
-      <main className="relative pt-32 pb-20">
+      <main className="relative pt-24 pb-16 sm:pt-28 sm:pb-20">
         {/* Background Visual Accents */}
         <div className="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
           <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]"></div>
@@ -84,36 +84,36 @@ export default function Landing() {
         </div>
 
         {/* Hero Section */}
-        <section className="max-w-container-max-width mx-auto px-margin-lg mb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <section className="mx-auto mb-16 max-w-container-max-width px-4 sm:px-6 lg:px-margin-lg sm:mb-20">
+          <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="relative z-10">
               <span className="inline-block font-label-sm px-3 py-1 bg-secondary-container/20 text-secondary border border-secondary/30 rounded-full mb-6 uppercase tracking-widest">
                 PROTOCOL ACTIVE: AES-256
               </span>
-              <h1 className="font-headline-xl text-6xl md:text-8xl bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-purple-500 leading-[1.1] mb-6 font-extrabold tracking-tight">
+              <h1 className="mb-6 bg-clip-text font-headline-xl text-4xl font-extrabold leading-[1.1] tracking-tight text-transparent bg-gradient-to-r from-cyan-500 to-purple-500 sm:text-5xl md:text-8xl">
                 Total Digital Sovereignty
               </h1>
-              <p className="font-body-lg text-on-surface-variant max-w-lg mb-10 text-lg leading-relaxed">
+              <p className="mb-8 max-w-lg text-base leading-relaxed text-on-surface-variant sm:mb-10 sm:text-lg">
                 End-to-end encrypted journaling for the security-conscious. Your thoughts, locked behind military-grade infrastructure that only you control.
               </p>
-              <div className="flex flex-wrap gap-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
                 <button 
                   onClick={() => navigate('/register')}
-                  className="flex items-center gap-2 font-title-md px-8 py-4 bg-cyan-500 text-white rounded-xl shadow-[0_10px_20px_rgba(6,182,212,0.2)] active:scale-95 transition-transform hover:shadow-[0_15px_30px_rgba(6,182,212,0.4)]"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-500 px-8 py-4 font-title-md text-white shadow-[0_10px_20px_rgba(6,182,212,0.2)] transition-transform hover:shadow-[0_15px_30px_rgba(6,182,212,0.4)] active:scale-95 sm:w-auto"
                 >
                   Start Writing Securely
                   <ArrowRight size={20} />
                 </button>
                 <button 
                   onClick={() => navigate('/login')}
-                  className="flex items-center gap-2 font-title-md px-8 py-4 border border-outline-variant rounded-xl hover:bg-surface-variant/20 transition-all font-bold"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-outline-variant px-8 py-4 font-title-md font-bold transition-all hover:bg-surface-variant/20 sm:w-auto"
                 >
                   View Demo
                 </button>
               </div>
             </div>
-            <div className="relative p-12 flex flex-col justify-center items-center gap-8">
-              <div className="relative w-full aspect-square max-w-[320px] bg-surface-container-low/40 backdrop-blur-3xl rounded-[2rem] border border-white/10 p-4 overflow-hidden shadow-2xl flex items-center justify-center">
+            <div className="relative flex flex-col items-center justify-center gap-6 p-4 sm:gap-8 sm:p-8 lg:p-12">
+              <div className="relative flex aspect-square w-full max-w-[280px] items-center justify-center overflow-hidden rounded-[2rem] border border-white/10 bg-surface-container-low/40 p-4 shadow-2xl backdrop-blur-3xl sm:max-w-[320px]">
                  <Shield size={180} className="text-primary-fixed-dim drop-shadow-[0_0_40px_rgba(0,218,243,0.4)] opacity-80" />
               </div>
               <EncryptionSimulation />
@@ -122,10 +122,10 @@ export default function Landing() {
         </section>
 
         {/* Feature Bento Grid */}
-        <section className="max-w-container-max-width mx-auto px-margin-lg mb-32">
-          <h2 className="font-headline-lg text-center mb-16 text-primary text-[40px] font-bold">Infrastructural Fortification</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 glass-panel glass-panel-hover rounded-3xl border border-white/10 p-10 flex flex-col md:flex-row gap-10 items-center transform transition-all hover:scale-[1.02]">
+        <section className="mx-auto mb-20 max-w-container-max-width px-4 sm:px-6 lg:px-margin-lg sm:mb-32">
+          <h2 className="mb-10 text-center text-3xl font-bold text-primary sm:mb-16 sm:text-[40px] font-headline-lg">Infrastructural Fortification</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 sm:gap-8">
+            <div className="glass-panel glass-panel-hover flex flex-col items-center gap-8 rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] md:col-span-2 md:flex-row md:gap-10 sm:p-10">
               <div className="w-full md:w-1/2">
                 <div className="w-16 h-16 bg-primary-container/20 text-primary flex items-center justify-center rounded-2xl mb-6 shadow-[0_0_15px_rgba(0,229,255,0.2)]">
                   <Shield size={32} />
@@ -133,11 +133,11 @@ export default function Landing() {
                 <h3 className="text-2xl font-bold mb-4 text-on-surface">Zero-Knowledge Architecture</h3>
                 <p className="font-body-md text-on-surface-variant lg:text-base">We don't just secure your data; we make it impossible for even us to read it. Encryption keys never leave your device.</p>
               </div>
-              <div className="w-full md:w-1/2 h-64 bg-surface-container-lowest/50 rounded-2xl overflow-hidden border border-outline-variant/30 flex items-center justify-center">
+              <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 md:h-64 md:w-1/2">
                 <Lock size={120} className="text-primary-fixed-dim opacity-20" />
               </div>
             </div>
-            <div className="glass-panel glass-panel-hover rounded-3xl border border-white/10 p-10 flex flex-col justify-between transform transition-all hover:scale-[1.02]">
+            <div className="glass-panel glass-panel-hover flex flex-col justify-between rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] sm:p-10">
               <div>
                 <div className="w-16 h-16 bg-secondary-container/20 text-secondary flex items-center justify-center rounded-2xl mb-6 shadow-[0_0_15px_rgba(209,188,255,0.2)]">
                   <Key size={32} />
@@ -146,7 +146,7 @@ export default function Landing() {
                 <p className="font-body-md text-on-surface-variant">Integrate YubiKey or Titan security keys for physical 2FA protection of your most private entries.</p>
               </div>
             </div>
-            <div className="glass-panel glass-panel-hover rounded-3xl border border-white/10 p-10 flex flex-col justify-between transform transition-all hover:scale-[1.02]">
+            <div className="glass-panel glass-panel-hover flex flex-col justify-between rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] sm:p-10">
               <div>
                 <div className="w-16 h-16 bg-tertiary-container/10 text-tertiary-fixed-dim flex items-center justify-center rounded-2xl mb-6">
                   <History size={32} />
@@ -155,8 +155,8 @@ export default function Landing() {
                 <p className="font-body-md text-on-surface-variant">Track every access attempt with cryptographically signed activity logs that cannot be tampered with.</p>
               </div>
             </div>
-            <div className="md:col-span-2 glass-panel glass-panel-hover rounded-3xl border border-white/10 p-10 flex flex-col-reverse md:flex-row gap-10 items-center transform transition-all hover:scale-[1.02]">
-              <div className="w-full md:w-1/2 h-64 bg-surface-container-lowest/50 rounded-2xl overflow-hidden border border-outline-variant/30 flex items-center justify-center">
+            <div className="glass-panel glass-panel-hover flex flex-col-reverse items-center gap-8 rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] md:col-span-2 md:flex-row md:gap-10 sm:p-10">
+              <div className="flex h-56 w-full items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container-lowest/50 md:h-64 md:w-1/2">
                 <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
                   <Shield size={100} className="text-secondary opacity-30" />
                 </div>
@@ -173,25 +173,25 @@ export default function Landing() {
         </section>
 
         {/* CTA Section */}
-        <section className="max-w-container-max-width mx-auto px-margin-lg">
-          <div className="glass-panel glass-panel-hover rounded-[3rem] border border-white/10 p-16 text-center relative overflow-hidden shadow-2xl">
+        <section className="mx-auto max-w-container-max-width px-4 sm:px-6 lg:px-margin-lg">
+          <div className="glass-panel glass-panel-hover relative overflow-hidden rounded-[3rem] border border-white/10 p-6 text-center shadow-2xl sm:p-10 md:p-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(112,0,255,0.15),transparent_70%)]"></div>
             <div className="relative z-10">
-              <h2 className="text-[48px] font-extrabold mb-8 text-primary tracking-tight">Your Thoughts Are Yours Alone.</h2>
-              <p className="text-xl text-on-surface-variant max-w-2xl mx-auto mb-12 leading-relaxed">
+              <h2 className="mb-6 text-3xl font-extrabold tracking-tight text-primary sm:mb-8 sm:text-4xl md:text-[48px]">Your Thoughts Are Yours Alone.</h2>
+              <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:mb-12 sm:text-lg md:text-xl">
                 Join 150,000+ security professionals who trust CipherDiary for their daily records. Secure your digital legacy today.
               </p>
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center">
                 <button 
                   onClick={() => navigate('/register')}
-                  className="font-bold px-10 py-5 bg-purple-500 text-white rounded-2xl shadow-xl hover:shadow-purple-500/40 transition-all active:scale-95 text-lg"
+                  className="w-full rounded-2xl bg-purple-500 px-8 py-4 text-base font-bold text-white shadow-xl transition-all active:scale-95 hover:shadow-purple-500/40 sm:w-auto sm:px-10 sm:py-5 sm:text-lg"
                 >
                   Deploy Vault Now
                 </button>
               </div>
-              <div className="mt-12 flex justify-center items-center gap-8 grayscale opacity-40">
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 grayscale opacity-40 sm:mt-12 sm:flex-row sm:gap-8">
                 <span className="font-label-sm tracking-widest uppercase text-xs font-black">Trusted By Teams At:</span>
-                <div className="flex gap-10 items-center font-bold text-2xl">
+                <div className="flex flex-wrap items-center justify-center gap-4 text-lg font-bold sm:gap-10 sm:text-2xl">
                   <span>CYBERSEC</span>
                   <span>NETLINK</span>
                   <span>QUANTUM</span>
