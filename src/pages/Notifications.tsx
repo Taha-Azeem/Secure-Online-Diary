@@ -2,6 +2,13 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import {
+  clearLocalNotificationsForUser,
+  deleteLocalNotification,
+  getLocalNotificationsForUser,
+  syncPendingNotifications,
+  updateLocalNotificationStatus,
+} from '../lib/notifications';
 import { useToast } from '../context/ToastContext';
 import { format } from 'date-fns';
 import { 
@@ -23,6 +30,7 @@ type NotificationItem = {
   priority: 'low' | 'medium' | 'high';
   status: 'unread' | 'read';
   timestamp: any;
+  _fallback?: boolean;
 };
 
 export default function Notifications() {
@@ -46,6 +54,31 @@ export default function Notifications() {
     });
   };
 
+  const loadLocalNotifications = (existing: NotificationItem[] = []) => {
+    const local = getLocalNotificationsForUser(user?.uid || '');
+    if (!local.length) return existing;
+
+    const mapped: NotificationItem[] = local.map((notification, idx) => ({
+      id: notification.id || `local-notification-${idx}-${notification.timestamp}`,
+      userId: notification.userId,
+      title: notification.title,
+      message: notification.message,
+      priority: notification.priority,
+      status: notification.status,
+      timestamp: notification.timestamp ? new Date(notification.timestamp) : new Date(),
+      _fallback: true,
+    }));
+
+    const remoteIds = new Set(existing.map((item) => item.id));
+    const merged = [...existing];
+    for (const notification of mapped) {
+      if (!remoteIds.has(notification.id)) {
+        merged.unshift(notification);
+      }
+    }
+    return merged;
+  };
+
   useEffect(() => {
     if (!user) return;
 
@@ -61,11 +94,12 @@ export default function Notifications() {
           id: doc.id,
           ...doc.data(),
         })) as NotificationItem[];
-        setNotifications(sortByNewest(list));
+        setNotifications(sortByNewest(loadLocalNotifications(list)));
         setLoading(false);
       },
       (err) => {
         console.error(err);
+        setNotifications(sortByNewest(loadLocalNotifications([])));
         setLoading(false);
       }
     );
@@ -82,6 +116,15 @@ export default function Notifications() {
 
   const handleMarkAsRead = async (id: string) => {
     try {
+      if (id.startsWith('local-notification-') || id.includes('local-notification-')) {
+        updateLocalNotificationStatus(user?.uid || '', id, 'read');
+        setNotifications((current) => current.map((notification) => (
+          notification.id === id ? { ...notification, status: 'read' } : notification
+        )));
+        showToast('Notification marked as read.', 'success');
+        return;
+      }
+
       const docRef = doc(db, 'notifications', id);
       await updateDoc(docRef, { status: 'read' });
       showToast('Notification marked as read.', 'success');
@@ -111,6 +154,13 @@ export default function Notifications() {
 
   const handleDelete = async (id: string) => {
     try {
+      if (id.startsWith('local-notification-') || id.includes('local-notification-')) {
+        deleteLocalNotification(user?.uid || '', id);
+        setNotifications((current) => current.filter((notification) => notification.id !== id));
+        showToast('Notification removed.', 'success');
+        return;
+      }
+
       await deleteDoc(doc(db, 'notifications', id));
       showToast('Notification removed.', 'success');
     } catch (err) {
@@ -126,16 +176,28 @@ export default function Notifications() {
     try {
       const batch = writeBatch(db);
       notifications.forEach((n) => {
+        if (n.id.startsWith('local-notification-')) {
+          return;
+        }
         const docRef = doc(db, 'notifications', n.id);
         batch.delete(docRef);
       });
       await batch.commit();
+      clearLocalNotificationsForUser(user?.uid || '');
+      setNotifications((current) => current.filter((notification) => !notification.id.startsWith('local-notification-')));
       showToast('Cleared all notifications.', 'success');
     } catch (err) {
       console.error(err);
       showToast('Failed to clear notifications.', 'error');
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    void syncPendingNotifications(user.uid).catch((err) => {
+      console.warn('Notification sync failed:', err);
+    });
+  }, [user]);
 
   return (
     <div className="mx-auto max-w-container-max-width px-4 py-6 md:px-margin-lg md:py-8 space-y-8 overflow-x-hidden">

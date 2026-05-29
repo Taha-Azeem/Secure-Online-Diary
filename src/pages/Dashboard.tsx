@@ -7,6 +7,7 @@ import { EncryptionService } from '../lib/encryption';
 import CryptoJS from 'crypto-js';
 import { useToast } from '../context/ToastContext';
 import { syncPendingEntries } from '../lib/entrySync';
+import { getLocalNotificationsForUser, syncPendingNotifications } from '../lib/notifications';
 import {
   Key,
   ShieldCheck,
@@ -168,12 +169,20 @@ export default function Dashboard() {
     // Listen to notifications unread count
     const qNotifs = query(
       collection(db, 'notifications'),
-      where('userId', '==', user.uid),
-      where('status', '==', 'unread')
+      where('userId', '==', user.uid)
     );
 
     const unsubscribeNotifs = onSnapshot(qNotifs, (snapshot) => {
-      setUnreadCount(snapshot.size);
+      const remote = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Array<{ status?: string; userId?: string; id: string }>;
+      const local = getLocalNotificationsForUser(user.uid);
+      const mergedUnread = [
+        ...remote.filter((notification) => notification.status === 'unread' && notification.userId === user.uid),
+        ...local.filter((notification) => notification.status === 'unread'),
+      ];
+      setUnreadCount(mergedUnread.length);
     });
 
     // Check critical alerts in past 24h
@@ -223,6 +232,23 @@ export default function Dashboard() {
     };
 
     void syncLocalEntries();
+  }, [user, showToast]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const syncLocalNotifications = async () => {
+      try {
+        const syncedCount = await syncPendingNotifications(user.uid);
+        if (syncedCount > 0) {
+          showToast(`Delivered ${syncedCount} pending notification(s) to your cloud inbox.`, 'success');
+        }
+      } catch (err) {
+        console.warn('Sync local notifications error:', err);
+      }
+    };
+
+    void syncLocalNotifications();
   }, [user, showToast]);
 
   const writeLazyVerifier = async (keyPhrase: string) => {

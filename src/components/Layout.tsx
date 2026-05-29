@@ -3,6 +3,7 @@ import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-d
 import { Github, Mail, Twitter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { syncPendingEntries } from '../lib/entrySync';
+import { syncPendingNotifications } from '../lib/notifications';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
@@ -125,6 +126,7 @@ function AppShell() {
     const runSync = async () => {
       if (cancelled) return;
       await syncPendingEntries(user.uid);
+      await syncPendingNotifications(user.uid);
     };
 
     void runSync();
