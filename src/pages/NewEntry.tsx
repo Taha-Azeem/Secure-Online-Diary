@@ -158,10 +158,12 @@ export default function NewEntry() {
         });
       } catch (writeErr: any) {
         console.warn('Entry write failed:', writeErr);
-        setDebugStatus('Write failed — attempting local fallback');
+        setDebugStatus('Write failed');
         const msg = (writeErr && writeErr.message) ? String(writeErr.message).toLowerCase() : '';
-        if (msg.includes('permission') || msg.includes('insufficient') || msg.includes('missing')) {
-          // Save a local fallback copy so the user can continue working without blocking.
+        const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+
+        if (isOffline) {
+          // Only fall back to local storage when the browser is offline.
           try {
             const local = JSON.parse(window.localStorage.getItem('localEntries') || '[]');
             local.push({
@@ -177,8 +179,8 @@ export default function NewEntry() {
               _fallback: true
             });
             window.localStorage.setItem('localEntries', JSON.stringify(local));
-            console.info('Saved entry to localStorage fallback (permission issue).');
-            showToast('Saved entry locally. Sync will retry automatically when the app is online.', 'warning');
+            console.info('Saved entry to localStorage fallback (offline).');
+            showToast('Saved entry locally because you are offline. Sync will retry when the app reconnects.', 'warning');
             setDebugStatus('Saved entry to localStorage fallback');
             void syncPendingEntries(user.uid);
           } catch (localErr) {
@@ -186,7 +188,8 @@ export default function NewEntry() {
             throw writeErr; // surface original write error if we couldn't persist locally
           }
         } else {
-          throw writeErr; // rethrow non-permission errors
+          showToast(`Firestore save failed: ${msg || 'Unknown error'}`, 'error');
+          throw writeErr;
         }
       }
 
