@@ -130,16 +130,16 @@ export default function EditEntry() {
         updatedAt: serverTimestamp(),
       });
 
-      // Log success
-      await addDoc(collection(db, 'activityLogs'), {
+      // Log success — non-critical and must not block the entry save.
+      void addDoc(collection(db, 'activityLogs'), {
         userId: user.uid,
         userEmail: user.email,
         action: 'Updated Entry',
         resource: `/diary/private/${id}`,
         timestamp: serverTimestamp(),
         status: 'ENCRYPTED'
-      }).catch(err => {
-        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
       });
 
       showToast('Changes encrypted and vault updated.', 'success');

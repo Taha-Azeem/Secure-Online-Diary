@@ -225,13 +225,15 @@ export function SettingsPage() {
         biometricsEnabled: faceEnabled || fingerprintEnabled,
       });
 
-      await addDoc(collection(db, 'activityLogs'), {
+      void addDoc(collection(db, 'activityLogs'), {
         userId: user?.uid,
         userEmail: user?.email,
         action: 'Updated Settings',
         resource: '/settings',
         timestamp: serverTimestamp(),
         status: 'SUCCESS',
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
       });
 
       pushStatus('Profile settings saved successfully.');
@@ -251,13 +253,15 @@ export function SettingsPage() {
   const handleRevokeAllAccess = async () => {
     setSessions((prev) => prev.filter((session) => session.current));
     try {
-      await addDoc(collection(db, 'activityLogs'), {
+      void addDoc(collection(db, 'activityLogs'), {
         userId: user?.uid,
         userEmail: user?.email,
         action: 'Revoked Access Nodes',
         resource: '/settings/sessions',
         timestamp: serverTimestamp(),
         status: 'SUCCESS',
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
       });
     } catch (error) {
       console.error(error);
@@ -276,13 +280,15 @@ export function SettingsPage() {
       await Promise.all(entriesSnap.docs.map((entry) => deleteDoc(doc(db, 'entries', entry.id))));
       setVaultKey(null);
 
-      await addDoc(collection(db, 'activityLogs'), {
+      void addDoc(collection(db, 'activityLogs'), {
         userId: user.uid,
         userEmail: user.email,
         action: 'Purged All Entries',
         resource: '/entries',
         timestamp: serverTimestamp(),
         status: 'DELETED',
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
       });
 
       pushStatus(`Purged ${entriesSnap.size} encrypted entr${entriesSnap.size === 1 ? 'y' : 'ies'} and cleared the local vault key.`);

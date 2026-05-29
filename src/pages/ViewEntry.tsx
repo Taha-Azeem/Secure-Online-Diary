@@ -137,15 +137,15 @@ export default function ViewEntry() {
 
     try {
       await deleteDoc(doc(db, 'entries', id));
-      await addDoc(collection(db, 'activityLogs'), {
+      void addDoc(collection(db, 'activityLogs'), {
         userId: user?.uid,
         userEmail: user?.email,
         action: 'Purged Record',
         resource: `/diary/private/${id}`,
         timestamp: serverTimestamp(),
         status: 'DELETED',
-      }).catch((err) => {
-        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
       });
 
       showToast('Entry deleted and purged from the vault.', 'success');

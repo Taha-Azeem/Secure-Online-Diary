@@ -118,18 +118,16 @@ export default function Register() {
       const userCredential = await signInWithPopup(auth, provider);
       const user = userCredential.user;
 
-      try {
-        await addDoc(collection(db, 'activityLogs'), {
-          userId: user.uid,
-          userEmail: user.email,
-          action: 'Login Success (Google)',
-          resource: '/system/auth',
-          timestamp: serverTimestamp(),
-          status: 'SUCCESS',
-        });
-      } catch (err) {
-        handleFirestoreError(err, OperationType.CREATE, 'activityLogs');
-      }
+      void addDoc(collection(db, 'activityLogs'), {
+        userId: user.uid,
+        userEmail: user.email,
+        action: 'Login Success (Google)',
+        resource: '/system/auth',
+        timestamp: serverTimestamp(),
+        status: 'SUCCESS',
+      }).catch((logErr) => {
+        console.warn('Activity log write failed (non-critical):', logErr);
+      });
 
       navigate(user.email?.includes('admin') ? '/admin' : '/dashboard');
     } catch (err: any) {

@@ -193,40 +193,17 @@ export default function NewEntry() {
         }
       }
 
-      // Log the action — failure here must NOT abort the seal operation. Also fallback to localStorage on permission errors.
-      try {
-        await addDoc(collection(db, 'activityLogs'), {
-          userId: user.uid,
-          userEmail: user.email ?? '',
-          action: 'Created Entry',
-          resource: '/diary/private',
-          timestamp: serverTimestamp(),
-          status: 'ENCRYPTED'
-        });
-      } catch (logErr: any) {
+      // Log the action — failure here must NOT abort the seal operation.
+      void addDoc(collection(db, 'activityLogs'), {
+        userId: user.uid,
+        userEmail: user.email ?? '',
+        action: 'Created Entry',
+        resource: '/diary/private',
+        timestamp: serverTimestamp(),
+        status: 'ENCRYPTED'
+      }).catch((logErr) => {
         console.warn('Activity log write failed (non-critical):', logErr);
-        const msg = (logErr && logErr.message) ? String(logErr.message).toLowerCase() : '';
-        if (msg.includes('permission') || msg.includes('insufficient') || msg.includes('missing')) {
-          try {
-            const local = JSON.parse(window.localStorage.getItem('localActivityLogs') || '[]');
-            local.push({
-              userId: user.uid,
-              userEmail: user.email ?? '',
-              action: 'Created Entry',
-              resource: '/diary/private',
-              timestamp: new Date().toISOString(),
-              status: 'ENCRYPTED',
-              _fallback: true
-            });
-            window.localStorage.setItem('localActivityLogs', JSON.stringify(local));
-            console.info('Saved activity log to localStorage fallback (permission issue).');
-            showToast('Activity logged locally (will sync later).', 'warning');
-            setDebugStatus('Saved activity log to localStorage fallback');
-          } catch (localErr) {
-            console.warn('Failed to save local fallback activity log:', localErr);
-          }
-        }
-      }
+      });
 
       // Mark UI as completed and give user feedback before navigating away
       setButtonText('Done');
