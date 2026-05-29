@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Navigate, Outlet } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Github, Mail, Twitter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { syncPendingEntries } from '../lib/entrySync';
@@ -111,6 +111,8 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
 
 function AppShell() {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     if (!user) {
@@ -139,6 +141,29 @@ function AppShell() {
       window.removeEventListener('focus', handleResume);
     };
   }, [user]);
+
+  React.useEffect(() => {
+    if (!user || typeof window === 'undefined') {
+      return;
+    }
+
+    const routeKey = 'cipherdiary:last-route';
+    const currentRoute = `${location.pathname}${location.search}`;
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0] as PerformanceNavigationTiming | undefined;
+    const isReload = navigationEntry?.type === 'reload';
+
+    if (location.pathname === '/' && isReload) {
+      const lastRoute = window.sessionStorage.getItem(routeKey);
+      if (lastRoute && lastRoute !== '/') {
+        navigate(lastRoute, { replace: true });
+        return;
+      }
+    }
+
+    if (location.pathname !== '/') {
+      window.sessionStorage.setItem(routeKey, currentRoute);
+    }
+  }, [location.pathname, location.search, navigate, user]);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
