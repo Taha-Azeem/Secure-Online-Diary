@@ -40,7 +40,7 @@ export default function App() {
   return (
     <ToastProvider>
       <AuthProvider>
-        <Router>
+        <Router basename={import.meta.env.BASE_URL}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Landing />} />
@@ -86,7 +86,7 @@ export default function App() {
                 </div>
                 <h1 className="text-4xl font-extrabold text-error">UNAUTHORIZED ACCESS DETECTED</h1>
                 <p className="text-on-surface-variant max-w-md">Your security clearance does not permit entry into this sector. IP logged. Protocol 403 active.</p>
-                <button onClick={() => window.location.href = '/'} className="px-8 py-4 bg-error text-white rounded-full font-bold uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95">Return to Secure Checkpoint</button>
+                <button onClick={() => window.location.href = import.meta.env.BASE_URL} className="px-8 py-4 bg-error text-white rounded-full font-bold uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95">Return to Secure Checkpoint</button>
               </div>
             } />
             

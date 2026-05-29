@@ -19,7 +19,7 @@ CipherDiary is an advanced Information Security project designed to provide tota
 
 ## 🌐 Live Deployment
 The application is automatically deployed to GitHub Pages. Access it here:
-**[CipherDiary Live](https://taha-azeem.github.io/Secure-Online-Diary---Information-security/)**
+**[CipherDiary Live](https://taha-azeem.github.io/Secure-Online-Diary/)**
 
 > **Note:** The live version requires Firebase configuration for authentication and data storage.
 
