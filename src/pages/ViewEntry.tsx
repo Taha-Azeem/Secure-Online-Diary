@@ -158,7 +158,7 @@ export default function ViewEntry() {
 
   if (loading) {
     return (
-      <div className="p-20 flex flex-col items-center justify-center gap-4 text-primary-fixed-dim animate-pulse">
+      <div className="p-8 sm:p-20 flex flex-col items-center justify-center gap-4 text-primary-fixed-dim animate-pulse">
         <div className="w-12 h-12 border-4 border-primary-fixed-dim border-t-transparent rounded-full animate-spin" />
         <p className="font-mono text-sm tracking-[0.3em]">INITIALIZING DECRYPTION CHAIN...</p>
       </div>
@@ -166,11 +166,11 @@ export default function ViewEntry() {
   }
 
   return (
-    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg">
+    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg overflow-x-hidden">
       {/* Vault Key Modal - non-dismissible if not set */}
       {!vaultKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg bg-surface-container-low border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-3 sm:p-4">
+          <div className="w-full max-w-lg max-h-[calc(100vh-1.5rem)] overflow-y-auto bg-surface-container-low border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="text-center space-y-2">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 shadow-[0_0_20px_rgba(0,218,243,0.3)]">
                 <Lock size={32} className="text-primary-fixed-dim" />
@@ -217,12 +217,12 @@ export default function ViewEntry() {
         Return to Command Center
       </button>
 
-      <div className="flex flex-col lg:flex-row gap-12 items-start">
+      <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 items-start">
         <aside className="w-full lg:w-72 flex flex-col gap-6">
           <div className="glass-panel rounded-2xl p-8 flex flex-col gap-8 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16" />
+            <div className="absolute top-0 right-0 hidden h-32 w-32 bg-primary/5 blur-3xl -mr-16 -mt-16 lg:block" />
 
-            <div className="flex items-center gap-5 relative z-10">
+            <div className="relative z-10 flex items-center gap-4 sm:gap-5">
               <div className="w-14 h-14 rounded-2xl bg-primary-container/20 flex items-center justify-center border border-primary/30 shadow-[0_0_15px_rgba(0,218,243,0.2)]">
                 <Lock className="text-primary" size={28} />
               </div>
@@ -285,11 +285,11 @@ export default function ViewEntry() {
 
         <article className="flex-1 w-full">
           <div className="glass-panel rounded-3xl overflow-hidden relative shadow-2xl">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-primary-container/10 blur-[120px] -mr-48 -mt-48" />
-            <div className="p-8 md:p-16 relative z-10">
+            <div className="absolute top-0 right-0 hidden h-96 w-96 bg-primary-container/10 blur-[120px] -mr-48 -mt-48 lg:block" />
+            <div className="relative z-10 p-5 sm:p-8 md:p-16">
               <header className="mb-12">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                  <h1 className="text-4xl md:text-5xl font-black text-on-surface leading-tight select-none break-all">
+                  <h1 className="break-words text-3xl font-black leading-tight text-on-surface select-none sm:text-4xl md:text-5xl">
                     {isDecrypted ? decrypted.title : encryptedTitle || 'ENCRYPTED HEADER'}
                   </h1>
                   <button
@@ -319,7 +319,7 @@ export default function ViewEntry() {
                 ) : null}
 
                 {!vaultKey ? (
-                  <div className="bg-error/10 border border-error/30 p-8 rounded-3xl flex flex-col items-center gap-4 text-center mt-12">
+                  <div className="bg-error/10 border border-error/30 p-6 sm:p-8 rounded-3xl flex flex-col items-center gap-4 text-center mt-12">
                     <AlertOctagon size={48} className="text-error" />
                     <h4 className="text-lg font-bold text-error">VAULT LOCKED</h4>
                     <p className="text-sm opacity-80 max-w-sm">
@@ -333,7 +333,7 @@ export default function ViewEntry() {
                     </button>
                   </div>
                 ) : (
-                  <div className={`rounded-[2rem] border p-6 md:p-8 ${isDecrypted ? 'border-primary-fixed-dim/20 bg-surface-container-lowest/30' : 'border-white/8 bg-surface-container-lowest/70'}`}>
+                  <div className={`rounded-[2rem] border p-5 sm:p-6 md:p-8 ${isDecrypted ? 'border-primary-fixed-dim/20 bg-surface-container-lowest/30' : 'border-white/8 bg-surface-container-lowest/70'}`}>
                     <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
                       {isDecrypted ? 'Readable Entry View' : 'Ciphertext View'}
                     </p>
@@ -348,7 +348,7 @@ export default function ViewEntry() {
                 )}
               </div>
 
-              <div className="mt-20 flex flex-col md:flex-row items-center justify-between border-t border-white/5 pt-10 gap-8">
+              <div className="mt-16 flex flex-col md:flex-row items-start md:items-center justify-between border-t border-white/5 pt-10 gap-6 sm:gap-8">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-surface-container-highest border border-white/10 flex items-center justify-center">
                     <User className="text-on-surface-variant" size={24} />

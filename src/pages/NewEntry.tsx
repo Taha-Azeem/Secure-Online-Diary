@@ -244,10 +244,10 @@ export default function NewEntry() {
   };
 
   return (
-    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-12">
+    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-8 overflow-x-hidden">
       {!vaultKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg bg-surface-container-low border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-3 sm:p-4">
+          <div className="w-full max-w-lg max-h-[calc(100vh-1.5rem)] overflow-y-auto bg-surface-container-low border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="text-center space-y-2">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 shadow-[0_0_20px_rgba(0,218,243,0.3)]">
                 <Lock size={32} className="text-primary-fixed-dim" />
@@ -352,33 +352,33 @@ export default function NewEntry() {
           </div>
         </div>
       )}
-      <header className="flex flex-col md:flex-row justify-between items-end gap-6">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/20 border border-primary-container/40 text-primary-fixed-dim whitespace-nowrap">
             <Shield size={16} />
             <span className="text-[10px] font-black uppercase tracking-widest">Protocol 7-Delta Active</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-on-surface leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface leading-tight">
             Initialize New<br/>
             <span className="text-primary-fixed-dim drop-shadow-[0_0_15px_rgba(0,218,243,0.4)]">Secure Entry</span>
           </h1>
         </div>
 
         {/* Security Indicator Widget */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-6 shadow-2xl">
-          <div className="relative w-20 h-20">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-5 sm:p-6 rounded-2xl flex items-center gap-4 sm:gap-6 shadow-2xl">
+          <div className="relative h-16 w-16 sm:h-20 sm:w-20">
             <svg className="w-full h-full transform -rotate-90">
               <circle className="text-surface-container-highest" cx="40" cy="40" fill="transparent" r="36" stroke="currentColor" strokeWidth="6"></circle>
               <circle className="text-primary-fixed-dim" cx="40" cy="40" fill="transparent" r="36" stroke="currentColor" strokeWidth="6" strokeDasharray="226" strokeDashoffset="40" style={{ filter: 'drop-shadow(0 0 8px #00daf3)' }}></circle>
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-xl font-black text-primary">82%</span>
+              <span className="text-lg font-black text-primary sm:text-xl">82%</span>
             </div>
           </div>
           <div>
             <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-1">Security Level</p>
-            <p className="text-lg font-bold text-on-surface leading-none">Tier-3 Encrypted</p>
-            <div className="flex gap-1 mt-4">
+            <p className="text-base sm:text-lg font-bold text-on-surface leading-none">Tier-3 Encrypted</p>
+            <div className="flex gap-1 mt-3 sm:mt-4">
               <div className="h-1 w-8 bg-primary rounded-full"></div>
               <div className="h-1 w-8 bg-primary rounded-full"></div>
               <div className="h-1 w-8 bg-primary rounded-full"></div>
@@ -400,14 +400,14 @@ export default function NewEntry() {
         {/* Text Editor Section */}
         <section className="lg:col-span-8 relative">
           <div className="glass-panel rounded-3xl p-6 md:p-8 overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between mb-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex gap-3">
                 <div className="h-3 w-3 rounded-full bg-error shadow-[0_0_8px_#ffb4ab]"></div>
                 <div className="h-3 w-3 rounded-full bg-secondary shadow-[0_0_8px_#d1bcff]"></div>
                 <div className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_#00daf3]"></div>
               </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-4 bg-surface-container-high rounded-xl px-4 py-2 border border-white/5">
+              <div className="flex w-full flex-col items-start sm:w-auto sm:items-end">
+                <div className="flex w-full items-center gap-4 rounded-xl border border-white/5 bg-surface-container-high px-4 py-2 sm:w-auto">
                   <FileText className="text-primary-fixed-dim" size={18} />
                   <input 
                     type="text"
@@ -418,7 +418,7 @@ export default function NewEntry() {
                       setTitleTouched(true);
                     }}
                     onBlur={() => setTitleTouched(true)}
-                    className="w-48 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40"
+                    className="w-full min-w-0 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40 sm:w-48"
                   />
                 </div>
                 {titleTouched && !title.trim() && (
@@ -442,7 +442,7 @@ export default function NewEntry() {
               <span className="text-[10px] font-bold text-red-400 mt-2 block select-none">Content cannot be empty</span>
             )}
 
-            <div className="flex flex-col md:flex-row justify-between items-center mt-10 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-10 gap-6">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#00daf3]"></span>
                 <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Biometric Syncing...</span>
@@ -451,7 +451,7 @@ export default function NewEntry() {
                 <button 
                   type="button"
                   onClick={() => navigate('/dashboard')}
-                  className="flex-1 md:flex-initial px-8 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 active:scale-95 transition-all uppercase tracking-widest"
+                  className="flex-1 md:flex-initial px-6 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 active:scale-95 transition-all uppercase tracking-widest"
                 >
                   Discard
                 </button>
@@ -459,7 +459,7 @@ export default function NewEntry() {
                   type="button"
                   onClick={handleSeal}
                   disabled={loading}
-                  className="flex-1 md:flex-initial px-10 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.4)] hover:scale-[1.03] active:scale-95 transition-all transform uppercase tracking-widest disabled:opacity-50"
+                  className="flex-1 md:flex-initial px-6 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.4)] hover:scale-[1.03] active:scale-95 transition-all transform uppercase tracking-widest disabled:opacity-50 sm:px-10"
                 >
                   {buttonText}
                 </button>
@@ -475,43 +475,43 @@ export default function NewEntry() {
 
         {/* Sidebar */}
         <aside className="lg:col-span-4 space-y-8">
-          <div className="bg-gradient-to-br from-surface-container-high/60 to-surface-container-lowest/80 backdrop-blur-3xl p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="bg-gradient-to-br from-surface-container-high/60 to-surface-container-lowest/80 backdrop-blur-3xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
             <h3 className="text-xl font-extrabold text-primary mb-6 flex items-center gap-3">
               <Lock size={20} />
               Encryption Parameters
             </h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
                 <span className="text-xs font-black text-on-surface-variant uppercase tracking-widest">Algorithm</span>
                 <span className="text-xs font-black text-primary-fixed-dim uppercase tracking-widest">AES-256 GCM</span>
               </div>
-              <div className="flex justify-between items-center p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
                 <span className="text-xs font-black text-on-surface-variant uppercase tracking-widest">Storage Node</span>
                 <span className="text-xs font-black text-primary-fixed-dim uppercase tracking-widest">Svalbard-12</span>
               </div>
-              <div className="flex justify-between items-center p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl bg-surface-container/50 border border-white/5 shadow-lg">
                 <span className="text-xs font-black text-on-surface-variant uppercase tracking-widest">Auto-Destruct</span>
                 <span className="text-xs font-black text-error uppercase tracking-widest animate-pulse">Disabled</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-surface-container-low/40 backdrop-blur-3xl p-1 rounded-3xl overflow-hidden h-48 relative shadow-2xl border border-white/10 group">
+          <div className="bg-surface-container-low/40 backdrop-blur-3xl p-1 rounded-3xl overflow-hidden h-40 sm:h-48 relative shadow-2xl border border-white/10 group">
             <img 
               src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800" 
               alt="Entropy" 
               className="w-full h-full object-cover rounded-[1.4rem] opacity-40 transition-transform duration-700 group-hover:scale-110" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
-            <div className="absolute bottom-6 left-6">
+            <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6">
               <p className="text-[10px] font-black text-primary-fixed-dim uppercase tracking-[0.2em] mb-1">Real-time Entropy</p>
-              <p className="text-lg font-bold text-on-surface leading-tight">System Seed Verified</p>
+              <p className="text-base sm:text-lg font-bold text-on-surface leading-tight">System Seed Verified</p>
             </div>
           </div>
 
-          <div className="bg-surface-container-low/40 backdrop-blur-3xl p-8 rounded-3xl border-l-4 border-secondary shadow-2xl border-y border-r border-white/10">
-            <div className="flex items-center gap-5 mb-8">
-              <div className="w-14 h-14 rounded-2xl bg-secondary-container/20 flex items-center justify-center border border-secondary/30">
+          <div className="bg-surface-container-low/40 backdrop-blur-3xl p-6 sm:p-8 rounded-3xl border-l-4 border-secondary shadow-2xl border-y border-r border-white/10">
+            <div className="flex items-center gap-4 sm:gap-5 mb-8">
+              <div className="h-12 w-12 rounded-2xl bg-secondary-container/20 flex items-center justify-center border border-secondary/30 sm:h-14 sm:w-14">
                 <Users size={28} className="text-secondary" />
               </div>
               <div>

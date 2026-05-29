@@ -359,8 +359,8 @@ export default function Dashboard() {
     <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-layer-gap relative">
       {/* Master Key non-dismissible Modal */}
       {!vaultKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-lg bg-surface-container-low border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-3 sm:p-4">
+          <div className="w-full max-w-lg max-h-[calc(100vh-1.5rem)] overflow-y-auto bg-surface-container-low border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <div className="text-center space-y-2">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 shadow-[0_0_20px_rgba(0,218,243,0.3)]">
                 <Lock size={32} className="text-primary-fixed-dim" />
@@ -469,31 +469,31 @@ export default function Dashboard() {
       )}
 
       {/* Main Dashboard UI */}
-      <section className="flex flex-col md:flex-row items-center gap-8 py-8 px-8 bg-surface-container-low/40 backdrop-blur-2xl border border-white/10 rounded-3xl relative overflow-hidden group shadow-2xl transition-all hover:scale-[1.01]">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-fixed-dim/5 blur-[100px] rounded-full" />
+      <section className="flex flex-col md:flex-row items-center gap-6 py-6 sm:py-8 px-5 sm:px-8 bg-surface-container-low/40 backdrop-blur-2xl border border-white/10 rounded-3xl relative overflow-hidden group shadow-2xl transition-all hover:scale-[1.01]">
+        <div className="absolute top-0 right-0 hidden h-64 w-64 rounded-full bg-primary-fixed-dim/5 blur-[100px] md:block" />
         <div className="flex-1 space-y-4 relative z-10">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-on-surface leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-on-surface leading-tight">
             Welcome back, <span className="text-primary-fixed-dim">{profile?.displayName || 'Chief Officer'}.</span>
           </h1>
-          <p className="text-lg text-on-surface-variant max-w-2xl leading-relaxed">
+          <p className="text-base sm:text-lg text-on-surface-variant max-w-2xl leading-relaxed">
             Your neural vault is synchronized and encrypted with AES-256 military standards. Private content remains hidden until you choose to decrypt it.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             <span className="px-4 py-1.5 rounded-full bg-primary-fixed-dim/10 border border-primary-fixed-dim/30 text-primary-fixed-dim text-xs font-black uppercase tracking-widest leading-none">Zero-Knowledge</span>
             <span className="px-4 py-1.5 rounded-full bg-secondary-container/20 border border-secondary/30 text-secondary text-xs font-black uppercase tracking-widest leading-none">
               {vaultKey ? 'Decrypt Ready' : 'Cipher Mode'}
             </span>
           </div>
         </div>
-        <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center relative z-10">
-          <Brain size={180} className="text-primary-fixed-dim drop-shadow-[0_0_25px_rgba(0,218,243,0.6)] opacity-80" />
+        <div className="flex h-32 w-32 items-center justify-center relative z-10 sm:h-48 sm:w-48 md:h-64 md:w-64">
+          <Brain size={120} className="h-[120px] w-[120px] text-primary-fixed-dim drop-shadow-[0_0_25px_rgba(0,218,243,0.6)] opacity-80 sm:h-40 sm:w-40 md:h-[180px] md:w-[180px]" />
         </div>
       </section>
 
       {/* Bento Grid Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
         {/* Stat 1: Total Entries */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col justify-between h-48 shadow-xl transform transition-all hover:-translate-y-1">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl flex flex-col justify-between min-h-48 shadow-xl transform transition-all hover:-translate-y-1">
           <div className="flex justify-between items-start">
             <div className="w-12 h-12 rounded-xl bg-primary-fixed-dim/10 flex items-center justify-center border border-primary-fixed-dim/20">
               <FileText className="text-primary-fixed-dim" size={24} />
@@ -502,12 +502,12 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="text-on-surface-variant font-black text-xs uppercase tracking-widest">Total Entries</div>
-            <div className="text-4xl font-extrabold text-on-surface">{entries.length}</div>
+            <div className="text-3xl sm:text-4xl font-extrabold text-on-surface">{entries.length}</div>
           </div>
         </div>
 
         {/* Stat 2: Encrypted Today */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col justify-between h-48 shadow-xl transform transition-all hover:-translate-y-1">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl flex flex-col justify-between min-h-48 shadow-xl transform transition-all hover:-translate-y-1">
           <div className="flex justify-between items-start">
             <div className="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center border border-secondary/20">
               <Key className="text-secondary" size={24} />
@@ -516,12 +516,12 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="text-on-surface-variant font-black text-xs uppercase tracking-widest">Encrypted Today</div>
-            <div className="text-4xl font-extrabold text-on-surface">{encryptedToday}</div>
+            <div className="text-3xl sm:text-4xl font-extrabold text-on-surface">{encryptedToday}</div>
           </div>
         </div>
 
         {/* Stat 3: Trust Score */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col justify-between h-48 shadow-xl transform transition-all hover:-translate-y-1">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl flex flex-col justify-between min-h-48 shadow-xl transform transition-all hover:-translate-y-1">
           <div className="flex justify-between items-start">
             <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center border border-green-500/20">
               <ShieldCheck className="text-green-500" size={24} />
@@ -530,12 +530,12 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="text-on-surface-variant font-black text-xs uppercase tracking-widest">Security Score</div>
-            <div className="text-4xl font-extrabold text-on-surface">100%</div>
+            <div className="text-3xl sm:text-4xl font-extrabold text-on-surface">100%</div>
           </div>
         </div>
 
         {/* Stat 4: Unread Notifications */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-6 rounded-2xl flex flex-col justify-between h-48 shadow-xl transform transition-all hover:-translate-y-1">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/10 p-5 sm:p-6 rounded-2xl flex flex-col justify-between min-h-48 shadow-xl transform transition-all hover:-translate-y-1">
           <div className="flex justify-between items-start">
             <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20">
               <Bell className="text-amber-500" size={24} />
@@ -546,26 +546,26 @@ export default function Dashboard() {
           </div>
           <div>
             <div className="text-on-surface-variant font-black text-xs uppercase tracking-widest">Alerts & Notifs</div>
-            <div className="text-4xl font-extrabold text-on-surface">{unreadCount}</div>
+            <div className="text-3xl sm:text-4xl font-extrabold text-on-surface">{unreadCount}</div>
           </div>
         </div>
       </div>
 
       {/* Main Area: Recent Entries & Sidebar Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-2xl font-bold">Recent Secure Entries</h2>
+          <div className="flex flex-col gap-2 px-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl sm:text-2xl font-bold">Recent Secure Entries</h2>
             <Link to="/vault" className="text-primary-fixed-dim hover:underline font-bold text-sm">View Vault</Link>
           </div>
 
           <div className="space-y-4">
             {loading ? (
-              <div className="flex items-center justify-center p-20 text-on-surface-variant animate-pulse font-mono uppercase tracking-[0.2em] text-sm">
+              <div className="flex items-center justify-center p-8 sm:p-20 text-center text-on-surface-variant animate-pulse font-mono uppercase tracking-[0.2em] text-sm">
                 STREAMING ENCRYPTED METADATA...
               </div>
             ) : entries.length === 0 ? (
-              <div className="bg-surface-container-low/20 border-2 border-dashed border-white/5 rounded-3xl p-12 text-center flex flex-col items-center gap-4">
+              <div className="bg-surface-container-low/20 border-2 border-dashed border-white/5 rounded-3xl p-8 sm:p-12 text-center flex flex-col items-center gap-4">
                 <Lock size={48} className="text-on-surface-variant opacity-20" />
                 <p className="text-on-surface-variant font-medium">Vault is currently empty. Record your first thought-stream.</p>
                 <button
@@ -586,7 +586,7 @@ export default function Dashboard() {
                   <div
                     key={entry.id}
                     onClick={() => navigate(`/entry/${entry.id}`)}
-                    className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-5 rounded-2xl flex items-center gap-6 group hover:cursor-pointer hover:border-primary-fixed-dim/30 transform transition-all hover:scale-[1.02]"
+                    className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 group hover:cursor-pointer hover:border-primary-fixed-dim/30 transform transition-all hover:scale-[1.02]"
                   >
                     <div className="w-14 h-14 rounded-2xl overflow-hidden bg-surface-container flex items-center justify-center p-1 border border-primary-fixed-dim/10">
                       <div className="w-full h-full rounded-xl bg-surface-container-highest flex items-center justify-center">
@@ -601,7 +601,7 @@ export default function Dashboard() {
                         Content Preview: <span className="font-mono text-xs opacity-60">••••••••</span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 self-end sm:self-auto">
                       <span className="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-500/20 leading-none">Encrypted</span>
                       <button type="button" className="p-2 hover:bg-surface-variant/40 rounded-full transition-colors">
                         <MoreVertical size={20} className="text-on-surface-variant" />
@@ -678,7 +678,7 @@ export default function Dashboard() {
       {/* Floating Action Button */}
       <button
         onClick={() => navigate('/entry/new')}
-        className="fixed right-8 bottom-8 w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00daf3] to-[#7000ff] text-white shadow-[0_10px_30px_rgba(0,218,243,0.4)] flex items-center justify-center z-50 hover:scale-110 active:scale-90 transform transition-all group"
+        className="fixed right-4 bottom-4 z-50 hidden h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#00daf3] to-[#7000ff] text-white shadow-[0_10px_30px_rgba(0,218,243,0.4)] transform transition-all group hover:scale-110 active:scale-90 sm:flex sm:right-8 sm:bottom-8 sm:h-16 sm:w-16"
       >
         <Plus size={32} className="group-hover:rotate-90 transition-transform duration-300" />
       </button>

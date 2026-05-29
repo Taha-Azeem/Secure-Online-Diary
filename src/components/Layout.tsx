@@ -110,7 +110,7 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
 
 function AppShell() {
   return (
-    <div className="min-h-screen bg-background text-on-surface">
+    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
       <BackgroundGlow />
       <Navbar />
       <Sidebar />
@@ -124,7 +124,7 @@ function AppShell() {
 
 export function PublicLayout() {
   return (
-    <div className="min-h-screen bg-background text-on-surface">
+    <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
       <BackgroundGlow />
       <Navbar />
       <main className="min-h-screen overflow-x-hidden pb-10 pt-20 sm:pt-24">

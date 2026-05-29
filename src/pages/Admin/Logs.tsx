@@ -68,15 +68,15 @@ export default function AdminLogs() {
   };
 
   return (
-    <div className="max-w-[1440px] mx-auto p-4 md:p-margin-lg space-y-layer-gap">
+    <div className="max-w-[1440px] mx-auto p-4 md:p-margin-lg space-y-layer-gap overflow-x-hidden">
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-4xl font-extrabold tracking-tight text-primary-fixed-dim">Activity Logs</h2>
+          <h2 className="text-3xl font-extrabold tracking-tight text-primary-fixed-dim sm:text-4xl">Activity Logs</h2>
           <p className="mt-2 font-medium text-on-surface-variant">Real-time surveillance of system-wide operations and security events.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center">
           <div className="flex items-center rounded-full border border-white/5 bg-surface-container-high/40 p-1 shadow-lg backdrop-blur-md">
-            <span className="px-6 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary-fixed-dim">Live Stream</span>
+            <span className="px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-primary-fixed-dim sm:px-6">Live Stream</span>
             <div className="relative h-7 w-14 rounded-full border border-primary-fixed-dim/30 bg-primary-container/20">
               <div className="absolute right-1.5 top-1.5 h-4 w-4 rounded-full bg-primary-fixed-dim shadow-[0_0_10px_#00daf3]" />
             </div>
@@ -84,7 +84,7 @@ export default function AdminLogs() {
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-surface-container-high px-6 py-3 text-sm font-bold uppercase tracking-widest shadow-xl transition-all hover:bg-surface-container-highest"
+            className="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-surface-container-high px-6 py-3 text-sm font-bold uppercase tracking-widest shadow-xl transition-all hover:bg-surface-container-highest sm:justify-start"
           >
             <Download size={18} />
             Export Data
@@ -92,9 +92,9 @@ export default function AdminLogs() {
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid grid-cols-12 gap-6 sm:gap-8">
         <div className="col-span-12 space-y-8 lg:col-span-3">
-          <section className="glass-panel rounded-[2rem] border border-white/10 p-8 shadow-2xl">
+          <section className="glass-panel rounded-[2rem] border border-white/10 p-6 sm:p-8 shadow-2xl">
             <div className="mb-8 flex items-center gap-3">
               <History size={24} className="text-primary-fixed-dim" />
               <h3 className="text-xl font-bold leading-none text-on-surface">Advanced Filters</h3>
@@ -135,7 +135,7 @@ export default function AdminLogs() {
 
         <div className="col-span-12 lg:col-span-9">
           <div className="glass-panel overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 bg-white/5 p-8">
+            <div className="flex flex-col gap-4 border-b border-white/10 bg-white/5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-3">
                   <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary-fixed-dim shadow-[0_0_10px_#00daf3]" />
@@ -157,31 +157,31 @@ export default function AdminLogs() {
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-surface-container-high/30">
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Timestamp</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Protocol</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Identity</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Payload Action</th>
-                    <th className="px-10 py-6 text-right text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Action</th>
+                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant sm:px-10">Timestamp</th>
+                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant sm:px-10">Protocol</th>
+                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant sm:px-10">Identity</th>
+                    <th className="px-4 py-6 text-[10px] font-black uppercase tracking-widest text-on-surface-variant sm:px-10">Payload Action</th>
+                    <th className="px-4 py-6 text-right text-[10px] font-black uppercase tracking-widest text-on-surface-variant sm:px-10">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredLogs.length > 0 ? (
                     filteredLogs.map((log) => (
                       <tr key={log.id} className="group transition-all hover:bg-white/5">
-                        <td className="whitespace-nowrap px-10 py-6 text-xs font-mono font-bold text-on-surface-variant opacity-60 group-hover:opacity-100">
+                        <td className="whitespace-nowrap px-4 py-6 text-xs font-mono font-bold text-on-surface-variant opacity-60 group-hover:opacity-100 sm:px-10">
                           {log.timestamp ? format(log.timestamp.toDate ? log.timestamp.toDate() : new Date(toMillis(log.timestamp)), 'HH:mm:ss.SSS') : 'Pending'}
                         </td>
-                        <td className="px-10 py-6">
+                        <td className="px-4 py-6 sm:px-10">
                           <span className="flex items-center gap-3 text-sm font-bold text-primary-fixed-dim">
                             <Activity size={16} />
                             {log.status || 'LOG'}
                           </span>
                         </td>
-                        <td className="px-10 py-6 text-sm font-bold text-on-surface">{log.userEmail || 'System'}</td>
-                        <td className="px-10 py-6 text-sm font-medium leading-relaxed text-on-surface-variant">
+                        <td className="px-4 py-6 text-sm font-bold text-on-surface sm:px-10">{log.userEmail || 'System'}</td>
+                        <td className="px-4 py-6 text-sm font-medium leading-relaxed text-on-surface-variant sm:px-10">
                           {log.action} on <span className="font-mono text-xs opacity-60">{log.resource}</span>
                         </td>
-                        <td className="px-10 py-6 text-right">
+                        <td className="px-4 py-6 text-right sm:px-10">
                           <button type="button" className="text-[10px] font-black uppercase tracking-widest text-primary-fixed-dim hover:underline">
                             Investigate
                           </button>
@@ -190,7 +190,7 @@ export default function AdminLogs() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="px-10 py-24 text-center text-sm font-medium text-on-surface-variant">
+                      <td colSpan={5} className="px-4 py-24 text-center text-sm font-medium text-on-surface-variant sm:px-10">
                         {loading ? 'Loading activity records...' : 'No activity logs found yet. Sign-ins and entry changes will start filling this panel automatically.'}
                       </td>
                     </tr>
@@ -199,7 +199,7 @@ export default function AdminLogs() {
               </table>
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/5 bg-white/5 p-8">
+            <div className="flex flex-col gap-4 border-t border-white/5 bg-white/5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-8">
               <span className="text-xs font-black uppercase tracking-widest text-on-surface-variant opacity-60">Showing {filteredLogs.length} entries</span>
               <div className="flex gap-4">
                 <button type="button" className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 text-on-surface-variant opacity-50 transition-all hover:bg-white/10">

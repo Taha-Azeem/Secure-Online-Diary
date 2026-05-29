@@ -177,7 +177,7 @@ export default function EditEntry() {
 
   if (loading) {
     return (
-      <div className="p-20 flex flex-col items-center justify-center gap-4 text-primary-fixed-dim animate-pulse">
+      <div className="p-8 sm:p-20 flex flex-col items-center justify-center gap-4 text-primary-fixed-dim animate-pulse">
         <div className="w-12 h-12 border-4 border-primary-fixed-dim border-t-transparent rounded-full animate-spin" />
         <p className="font-mono text-sm tracking-[0.3em]">RETRIVING VAULT DATA...</p>
       </div>
@@ -185,8 +185,8 @@ export default function EditEntry() {
   }
 
   return (
-    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-12">
-      <header className="flex flex-col md:flex-row justify-between items-end gap-6">
+    <div className="max-w-container-max-width mx-auto p-4 md:p-margin-lg space-y-8 overflow-x-hidden">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
         <div className="space-y-4">
           <button
             onClick={() => navigate(`/entry/${id}`)}
@@ -195,17 +195,17 @@ export default function EditEntry() {
             <ChevronLeft size={16} />
             Cancel and Return
           </button>
-          <h1 className="text-4xl md:text-5xl font-black text-on-surface leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-on-surface leading-tight">
             Modify Secure<br/>
             <span className="text-primary-fixed-dim drop-shadow-[0_0_15px_rgba(0,218,243,0.4)]">Journal Entry</span>
           </h1>
         </div>
 
         {/* Security Indicator Widget */}
-        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-6 shadow-2xl">
+        <div className="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 p-5 sm:p-6 rounded-2xl flex items-center gap-4 sm:gap-6 shadow-2xl">
           <div>
             <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-1">Key Status</p>
-            <p className="text-lg font-bold text-on-surface leading-none">AES-256 Verified</p>
+            <p className="text-base sm:text-lg font-bold text-on-surface leading-none">AES-256 Verified</p>
           </div>
         </div>
       </header>
@@ -214,14 +214,14 @@ export default function EditEntry() {
         {/* Text Editor Section */}
         <section className="lg:col-span-8 relative">
           <div className="glass-panel rounded-3xl p-6 md:p-8 overflow-hidden shadow-2xl">
-            <div className="flex items-center justify-between mb-8">
+            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex gap-3">
                 <div className="h-3 w-3 rounded-full bg-error shadow-[0_0_8px_#ffb4ab]"></div>
                 <div className="h-3 w-3 rounded-full bg-secondary shadow-[0_0_8px_#d1bcff]"></div>
                 <div className="h-3 w-3 rounded-full bg-primary shadow-[0_0_8px_#00daf3]"></div>
               </div>
-              <div className="flex flex-col items-end">
-                <div className="flex items-center gap-4 bg-surface-container-high rounded-xl px-4 py-2 border border-white/5">
+              <div className="flex w-full flex-col items-start sm:w-auto sm:items-end">
+                <div className="flex w-full items-center gap-4 rounded-xl border border-white/5 bg-surface-container-high px-4 py-2 sm:w-auto">
                   <FileText className="text-primary-fixed-dim" size={18} />
                   <input 
                     type="text"
@@ -232,7 +232,7 @@ export default function EditEntry() {
                       setTitleTouched(true);
                     }}
                     onBlur={() => setTitleTouched(true)}
-                    className="w-48 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40"
+                    className="w-full min-w-0 bg-transparent border-none outline-none text-sm font-bold text-on-surface uppercase tracking-[0.18em] placeholder:text-on-surface-variant/40 sm:w-48"
                   />
                 </div>
                 {titleTouched && !title.trim() && (
@@ -256,7 +256,7 @@ export default function EditEntry() {
               <span className="text-[10px] font-bold text-red-400 mt-2 block select-none">Content cannot be empty</span>
             )}
 
-            <div className="flex flex-col md:flex-row justify-between items-center mt-10 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-10 gap-6">
               <div className="flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_#00daf3]"></span>
                 <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Quantum Security Seal active</span>
@@ -265,7 +265,7 @@ export default function EditEntry() {
                 <button 
                   type="button"
                   onClick={() => navigate(`/entry/${id}`)}
-                  className="flex-1 md:flex-initial px-8 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 active:scale-95 transition-all uppercase tracking-widest"
+                  className="flex-1 md:flex-initial px-6 py-3 rounded-xl border border-white/10 font-bold text-sm text-on-surface hover:bg-white/5 active:scale-95 transition-all uppercase tracking-widest"
                 >
                   Cancel
                 </button>
@@ -273,7 +273,7 @@ export default function EditEntry() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving}
-                  className="flex-1 md:flex-initial px-10 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.4)] hover:scale-[1.03] active:scale-95 transition-all transform uppercase tracking-widest disabled:opacity-50"
+                  className="flex-1 md:flex-initial px-6 py-3 rounded-xl bg-gradient-to-r from-primary-container to-secondary-container text-background font-black text-sm shadow-[0_10px_20px_rgba(0,229,255,0.2)] hover:shadow-[0_15px_30px_rgba(0,229,255,0.4)] hover:scale-[1.03] active:scale-95 transition-all transform uppercase tracking-widest disabled:opacity-50 sm:px-10"
                 >
                   {buttonText}
                 </button>
@@ -284,7 +284,7 @@ export default function EditEntry() {
 
         {/* Sidebar */}
         <aside className="lg:col-span-4 space-y-8">
-          <div className="bg-gradient-to-br from-surface-container-high/60 to-surface-container-lowest/80 backdrop-blur-3xl p-8 rounded-3xl border border-white/10 shadow-2xl">
+          <div className="bg-gradient-to-br from-surface-container-high/60 to-surface-container-lowest/80 backdrop-blur-3xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl">
             <h3 className="text-xl font-extrabold text-primary mb-6 flex items-center gap-3">
               <Lock size={20} />
               Metadata Settings

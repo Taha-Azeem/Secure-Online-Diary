@@ -245,22 +245,22 @@ export default function Vault() {
   }
 
   return (
-    <div className="mx-auto max-w-container-max-width px-4 py-6 md:px-margin-lg md:py-8 space-y-8">
+      <div className="mx-auto max-w-container-max-width px-4 py-6 md:px-margin-lg md:py-8 space-y-8 overflow-x-hidden">
       {/* Header section */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-5">
         <div className="space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/20 border border-primary-container/40 text-primary-fixed-dim whitespace-nowrap">
             <Unlock size={14} className="text-[#06b6d4]" />
             <span className="text-[10px] font-black uppercase tracking-widest">Vault Decrypted & Ready</span>
           </div>
-          <h1 className="cyan-glow-text text-4xl font-extrabold tracking-tight text-on-surface md:text-[40px]">My Secure Vault</h1>
+          <h1 className="cyan-glow-text text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl md:text-[40px]">My Secure Vault</h1>
           <p className="text-sm text-on-surface-variant max-w-xl">
             Browse, search, and manage your private zero-knowledge encrypted thoughts.
           </p>
         </div>
         <button
           onClick={() => navigate('/entry/new')}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#8b5cf6] text-background font-black text-sm uppercase tracking-widest hover:scale-[1.03] active:scale-95 transition-all shadow-[0_10px_20px_rgba(6,182,212,0.25)]"
+          className="flex w-full items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#8b5cf6] text-background font-black text-sm uppercase tracking-widest hover:scale-[1.03] active:scale-95 transition-all shadow-[0_10px_20px_rgba(6,182,212,0.25)] sm:w-auto"
         >
           <Plus size={18} />
           New Entry
@@ -277,7 +277,7 @@ export default function Vault() {
             placeholder="Search within decrypted diaries..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary-container/60 transition-all font-medium placeholder:text-on-surface-variant/40"
+            className="w-full pl-12 pr-4 py-3 sm:py-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary-container/60 transition-all font-medium placeholder:text-on-surface-variant/40"
           />
         </div>
         
@@ -287,7 +287,7 @@ export default function Vault() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full pl-12 pr-8 py-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary-container/60 transition-all font-medium appearance-none cursor-pointer"
+            className="w-full pl-12 pr-8 py-3 sm:py-4 rounded-xl border border-outline-variant/30 bg-surface-container-lowest text-on-surface outline-none focus:ring-2 focus:ring-primary-container/60 transition-all font-medium appearance-none cursor-pointer"
           >
             {categories.map((cat) => (
               <option key={cat} value={cat} className="bg-surface-container-lowest text-on-surface">
@@ -305,7 +305,7 @@ export default function Vault() {
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div 
               key={i} 
-              className="bg-white/5 border border-white/10 rounded-2xl p-6 h-48 space-y-4 animate-pulse flex flex-col justify-between"
+              className="bg-white/5 border border-white/10 rounded-2xl p-5 sm:p-6 min-h-48 space-y-4 animate-pulse flex flex-col justify-between"
             >
               <div className="space-y-3">
                 <div className="h-4 bg-white/10 rounded-full w-2/3" />
@@ -320,7 +320,7 @@ export default function Vault() {
           ))}
         </div>
       ) : filteredEntries.length === 0 ? (
-        <div className="glass-panel rounded-3xl p-16 text-center flex flex-col items-center gap-6 shadow-2xl">
+        <div className="glass-panel rounded-3xl p-8 sm:p-16 text-center flex flex-col items-center gap-6 shadow-2xl">
           <div className="w-16 h-16 rounded-2xl bg-surface-container-high border border-white/5 flex items-center justify-center text-on-surface-variant opacity-40">
             <FileText size={32} />
           </div>
@@ -347,12 +347,12 @@ export default function Vault() {
             <div
               key={entry.id}
               onClick={() => navigate(`/entry/${entry.id}`)}
-              className="group relative flex flex-col justify-between h-48 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:border-[#06b6d4]/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.18)] cursor-pointer"
-            >
+            className="group relative flex min-h-48 flex-col justify-between bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:border-[#06b6d4]/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.18)] cursor-pointer"
+          >
               {/* Card top */}
               <div className="space-y-2">
-                <div className="flex justify-between items-start gap-4">
-                  <h3 className="font-bold text-lg text-white truncate group-hover:text-[#06b6d4] transition-colors leading-tight">
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="min-w-0 flex-1 truncate font-bold text-base text-white transition-colors leading-tight group-hover:text-[#06b6d4] sm:text-lg">
                     {entry.decryptedTitle}
                   </h3>
                   <span className="shrink-0 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-green-500/10 text-green-400 border border-green-500/20">
@@ -365,8 +365,8 @@ export default function Vault() {
               </div>
 
               {/* Card bottom */}
-              <div className="flex justify-between items-center pt-4 border-t border-white/5">
-                <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
+              <div className="flex flex-col gap-3 border-t border-white/5 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-3 text-[10px] font-black uppercase tracking-wider text-on-surface-variant">
                   <span className="flex items-center gap-1.5">
                     <Calendar size={12} className="text-[#8b5cf6]" />
                     {entry.createdAt ? format(entry.createdAt.toDate(), 'MMM d') : 'N/A'}
@@ -377,7 +377,7 @@ export default function Vault() {
                   </span>
                 </div>
                 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 self-end sm:self-auto">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();

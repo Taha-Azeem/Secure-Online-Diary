@@ -94,27 +94,27 @@ export default function SecurityMonitor() {
   };
 
   return (
-    <div className="mx-auto max-w-container-max-width px-4 py-6 md:px-margin-lg md:py-8 space-y-8">
+    <div className="mx-auto max-w-container-max-width px-4 py-6 md:px-margin-lg md:py-8 space-y-8 overflow-x-hidden">
       {/* Page Title */}
       <header className="space-y-3">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-container/20 border border-primary-container/40 text-primary-fixed-dim whitespace-nowrap">
           <Shield size={14} className="text-[#06b6d4]" />
           <span className="text-[10px] font-black uppercase tracking-widest">Security Clearance: Level 5</span>
         </div>
-        <h1 className="cyan-glow-text text-4xl font-extrabold tracking-tight text-on-surface md:text-[40px]">Security Monitor</h1>
+        <h1 className="cyan-glow-text text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl md:text-[40px]">Security Monitor</h1>
         <p className="text-sm text-on-surface-variant max-w-xl">
           Real-time check on your client-side cryptography, local keys, and authentication activity.
         </p>
       </header>
 
       {/* Grid of panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
         
         {/* Left Side - Status & Scanning */}
         <div className="lg:col-span-7 space-y-6">
           
           {/* Security Posture Status */}
-          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
+          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-6">
             <h3 className="text-xl font-bold text-white flex items-center gap-3">
               <Shield className="text-[#06b6d4]" size={20} />
               Diagnostic Posture
@@ -149,8 +149,8 @@ export default function SecurityMonitor() {
           </section>
 
           {/* Simulated Integrity Scanner */}
-          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
-            <div className="flex justify-between items-center">
+          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-xl font-bold text-white flex items-center gap-3">
                 <Terminal className="text-[#8b5cf6]" size={20} />
                 Client-Side Integrity Audit
@@ -198,7 +198,7 @@ export default function SecurityMonitor() {
 
         {/* Right Side - Logs */}
         <div className="lg:col-span-5 space-y-6">
-          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-6">
+          <section className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-6">
             <h3 className="text-xl font-bold text-white flex items-center gap-3">
               <Activity className="text-[#10b981]" size={20} />
               Session Audit Trails

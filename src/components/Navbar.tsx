@@ -97,7 +97,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           {isAdmin && user ? (
             <span className="hidden rounded-full border border-secondary/25 bg-secondary-container/15 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-secondary md:inline-flex">
               Admin Mode
@@ -108,13 +108,13 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate('/login')}
-                className="rounded-xl border border-primary-fixed-dim/30 px-3 py-2 text-sm font-bold text-primary-fixed-dim transition-all hover:bg-primary-fixed-dim/10 sm:px-4"
+                className="hidden shrink-0 rounded-xl border border-primary-fixed-dim/30 px-3 py-2 text-sm font-bold text-primary-fixed-dim transition-all hover:bg-primary-fixed-dim/10 sm:inline-flex sm:px-4"
               >
                 Login
               </button>
               <button
                 onClick={() => navigate('/register')}
-                className="hidden rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5 sm:inline-flex"
+                className="hidden shrink-0 rounded-xl bg-cyan-500 px-4 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5 sm:inline-flex"
               >
                 Initialize Vault
               </button>
@@ -122,7 +122,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={() => navigate(dashboardPath)}
-              className="rounded-xl bg-cyan-500 px-3 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5 sm:px-4"
+              className="hidden shrink-0 rounded-xl bg-cyan-500 px-3 py-2 text-sm font-bold text-on-primary-container shadow-[0_0_15px_rgba(0,229,255,0.25)] transition-all hover:-translate-y-0.5 sm:inline-flex sm:px-4"
             >
               {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
             </button>
@@ -133,7 +133,7 @@ export default function Navbar() {
             onClick={() => setMenuOpen((current) => !current)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-outline-variant/30 bg-surface-container-low/70 text-on-surface transition-all hover:border-primary-fixed-dim/30 hover:text-primary-fixed-dim lg:hidden"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-outline-variant/30 bg-surface-container-low/70 text-on-surface transition-all hover:border-primary-fixed-dim/30 hover:text-primary-fixed-dim lg:hidden"
           >
             {menuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
