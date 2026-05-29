@@ -30,6 +30,15 @@ function docsToRecords(snapshot: QuerySnapshot<DocumentData>) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
+function getTimestampDate(value: any) {
+  if (!value) return null;
+  if (typeof value.toDate === 'function') return value.toDate() as Date;
+  if (typeof value.toMillis === 'function') return new Date(value.toMillis());
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+  if (value instanceof Date) return value;
+  return null;
+}
+
 const fallbackAlerts: AdminRecord[] = [
   { id: 'fallback-1', severity: 'HIGH', type: 'AUTH', description: 'No security log records yet. Live alerts will appear here after auth events.' },
   { id: 'fallback-2', severity: 'INFO', type: 'POLICY', description: 'Configure monitoring rules to turn this panel into a live security feed.' },
@@ -118,6 +127,41 @@ export default function AdminDashboard() {
   const securityAlerts = useMemo(() => (alerts.length > 0 ? alerts.slice(0, 5) : fallbackAlerts), [alerts]);
 
   const failedTone = useMemo(() => (stats.failed > 0 ? 'text-error' : 'text-primary-fixed-dim'), [stats.failed]);
+
+  const entryTrend = useMemo(() => {
+    const days = 12;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const buckets = Array.from({ length: days }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (days - 1 - index));
+      return {
+        key: date.toDateString(),
+        label: format(date, 'dd MMM'),
+        count: 0,
+      };
+    });
+
+    const bucketMap = new Map(buckets.map((bucket) => [bucket.key, bucket]));
+
+    entries.forEach((entry) => {
+      const entryDate = getTimestampDate(entry.createdAt || entry.updatedAt);
+      if (!entryDate) return;
+      entryDate.setHours(0, 0, 0, 0);
+      const bucket = bucketMap.get(entryDate.toDateString());
+      if (bucket) {
+        bucket.count += 1;
+      }
+    });
+
+    const maxCount = Math.max(...buckets.map((bucket) => bucket.count), 1);
+
+    return buckets.map((bucket) => ({
+      ...bucket,
+      height: Math.max(18, (bucket.count / maxCount) * 100),
+    }));
+  }, [entries]);
 
   return (
     <div className="max-w-[1440px] mx-auto p-4 md:p-margin-lg space-y-layer-gap overflow-x-hidden">
@@ -242,11 +286,40 @@ export default function AdminDashboard() {
             </div>
 
             <div className="mt-8 sm:mt-12">
-              <p className="mb-6 px-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Encryption Load History</p>
-              <div className="flex h-28 items-end gap-2 px-2 sm:h-32 sm:gap-3">
-                {[40, 60, 55, 80, 45, 70, 90, 30, 65, 75, 85, 95].map((h, i) => (
-                  <div key={i} className="flex-1 rounded-t-lg transition-all duration-500 hover:opacity-80" style={{ height: `${h}%`, background: i > 8 ? 'linear-gradient(to top, #00daf3, #7000ff)' : 'rgba(0, 218, 243, 0.2)', boxShadow: i > 8 ? '0 0 15px rgba(0, 218, 243, 0.3)' : 'none' }} />
+              <div className="mb-6 flex items-center justify-between gap-4 px-2">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Total Entries in Database</p>
+                  <p className="mt-1 text-sm font-bold text-on-surface">{stats.entries.toLocaleString()} live record{stats.entries === 1 ? '' : 's'}</p>
+                </div>
+                <span className="rounded-full border border-primary-fixed-dim/20 bg-primary-fixed-dim/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary-fixed-dim">
+                  Firestore Live
+                </span>
+              </div>
+              <div className="flex h-36 items-end gap-2 px-2 sm:h-40 sm:gap-3">
+                {entryTrend.map((point) => (
+                  <div key={point.key} className="group flex flex-1 flex-col items-center gap-2">
+                    <div className="flex h-full w-full items-end">
+                      <div
+                        title={`${point.label}: ${point.count} entries`}
+                        className="w-full rounded-t-lg transition-all duration-500 group-hover:opacity-90"
+                        style={{
+                          height: `${point.height}%`,
+                          background: point.count > 0
+                            ? 'linear-gradient(to top, #00daf3, #7000ff)'
+                            : 'rgba(0, 218, 243, 0.12)',
+                          boxShadow: point.count > 0 ? '0 0 15px rgba(0, 218, 243, 0.3)' : 'none',
+                        }}
+                      />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-on-surface-variant/80">
+                      {point.count}
+                    </span>
+                  </div>
                 ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between px-2 text-[10px] font-black uppercase tracking-widest text-on-surface-variant/70">
+                <span>{entryTrend[0]?.label}</span>
+                <span>{entryTrend[entryTrend.length - 1]?.label}</span>
               </div>
             </div>
           </div>
