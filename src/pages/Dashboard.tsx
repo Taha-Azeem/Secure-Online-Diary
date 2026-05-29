@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { collection, query, where, orderBy, limit, onSnapshot, getDocs, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, onSnapshot, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestoreUtils';
 import { db } from '../lib/firebase';
 import { EncryptionService } from '../lib/encryption';
 import CryptoJS from 'crypto-js';
 import { useToast } from '../context/ToastContext';
+import { syncPendingEntries } from '../lib/entrySync';
 import {
   Key,
   ShieldCheck,
@@ -192,47 +193,12 @@ export default function Dashboard() {
 
   // Automatic sync of local fallback entries to Firestore
   useEffect(() => {
-    if (!user || !vaultKey) return;
+    if (!user) return;
 
     const syncLocalEntries = async () => {
       try {
-        const raw = window.localStorage.getItem('localEntries');
-        if (!raw) return;
-        const local = JSON.parse(raw) as any[];
-        const userLocal = local.filter(e => e.ownerId === user.uid && e._fallback);
-        if (userLocal.length === 0) return;
-
-        console.info(`Found ${userLocal.length} offline/fallback entries to sync.`);
-        
-        let syncedCount = 0;
-        const remaining: any[] = [];
-
-        for (const entry of local) {
-          if (entry.ownerId === user.uid && entry._fallback) {
-            try {
-              await addDoc(collection(db, 'entries'), {
-                ownerId: entry.ownerId,
-                titleEncrypted: entry.titleEncrypted,
-                contentEncrypted: entry.contentEncrypted,
-                categoryEncrypted: entry.categoryEncrypted,
-                securityLevelEncrypted: entry.securityLevelEncrypted,
-                salt: entry.salt,
-                iv: entry.iv,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
-              });
-              syncedCount++;
-            } catch (err) {
-              console.warn('Failed to sync entry, keeping locally:', err);
-              remaining.push(entry);
-            }
-          } else {
-            remaining.push(entry);
-          }
-        }
-
+        const syncedCount = await syncPendingEntries(user.uid);
         if (syncedCount > 0) {
-          window.localStorage.setItem('localEntries', JSON.stringify(remaining));
           showToast(`Successfully synced ${syncedCount} offline entry/entries to your cloud vault!`, 'success');
         }
       } catch (err) {
@@ -241,7 +207,7 @@ export default function Dashboard() {
     };
 
     void syncLocalEntries();
-  }, [user, vaultKey]);
+  }, [user, showToast]);
 
   const writeLazyVerifier = async (keyPhrase: string) => {
     try {

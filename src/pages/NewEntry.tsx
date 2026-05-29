@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { EncryptionService } from '../lib/encryption';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { syncPendingEntries } from '../lib/entrySync';
 import { useNavigate } from 'react-router-dom';
 import CryptoJS from 'crypto-js';
 import { useToast } from '../context/ToastContext';
@@ -177,8 +178,9 @@ export default function NewEntry() {
             });
             window.localStorage.setItem('localEntries', JSON.stringify(local));
             console.info('Saved entry to localStorage fallback (permission issue).');
-            showToast('Saved entry locally (will sync when backend available).', 'warning');
+            showToast('Saved entry locally. Sync will retry automatically when the app is online.', 'warning');
             setDebugStatus('Saved entry to localStorage fallback');
+            void syncPendingEntries(user.uid);
           } catch (localErr) {
             console.error('Failed to save local fallback entry:', localErr);
             throw writeErr; // surface original write error if we couldn't persist locally

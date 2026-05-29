@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, Navigate, Outlet } from 'react-router-dom';
 import { Github, Mail, Twitter } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { syncPendingEntries } from '../lib/entrySync';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
@@ -109,6 +110,36 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
 }
 
 function AppShell() {
+  const { user } = useAuth();
+
+  React.useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const runSync = async () => {
+      if (cancelled) return;
+      await syncPendingEntries(user.uid);
+    };
+
+    void runSync();
+
+    const handleResume = () => {
+      void runSync();
+    };
+
+    window.addEventListener('online', handleResume);
+    window.addEventListener('focus', handleResume);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('online', handleResume);
+      window.removeEventListener('focus', handleResume);
+    };
+  }, [user]);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background text-on-surface">
       <BackgroundGlow />
