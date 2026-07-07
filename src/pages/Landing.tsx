@@ -14,7 +14,7 @@ function EncryptionSimulation() {
       'My secret thoughts are fully private.',
       'Cryptographic keys never touch the server.',
       'Sovereignty is defined by local encryption.',
-      'CipherDiary secures your digital memory.'
+      'Cipher Diary secures your digital memory.'
     ];
     let phraseIndex = 0;
     
@@ -88,13 +88,13 @@ export default function Landing() {
           <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="relative z-10">
               <span className="inline-block font-label-sm px-3 py-1 bg-secondary-container/20 text-secondary border border-secondary/30 rounded-full mb-6 uppercase tracking-widest">
-                PROTOCOL ACTIVE: AES-256
+                Encryption Protocol: AES-256
               </span>
               <h1 className="mb-6 bg-clip-text font-headline-xl text-4xl font-extrabold leading-[1.1] tracking-tight text-transparent bg-gradient-to-r from-cyan-500 to-purple-500 sm:text-5xl md:text-8xl">
-                Total Digital Sovereignty
+                Your Data, Your Control
               </h1>
               <p className="mb-8 max-w-lg text-base leading-relaxed text-on-surface-variant sm:mb-10 sm:text-lg">
-                End-to-end encrypted journaling for the security-conscious. Your thoughts, locked behind military-grade infrastructure that only you control.
+               Secure encrypted journaling for privacy-conscious users. Your diary is protected with strong encryption, and only you can access it.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
                 <button 
@@ -123,7 +123,7 @@ export default function Landing() {
 
         {/* Feature Bento Grid */}
         <section className="mx-auto mb-20 max-w-container-max-width px-4 sm:px-6 lg:px-margin-lg sm:mb-32">
-          <h2 className="mb-10 text-center text-3xl font-bold text-primary sm:mb-16 sm:text-[40px] font-headline-lg">Infrastructural Fortification</h2>
+          <h2 className="mb-10 text-center text-3xl font-bold text-primary sm:mb-16 sm:text-[40px] font-headline-lg">Secure Infrastructure</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 sm:gap-8">
             <div className="glass-panel glass-panel-hover flex flex-col items-center gap-8 rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] md:col-span-2 md:flex-row md:gap-10 sm:p-10">
               <div className="w-full md:w-1/2">
@@ -143,7 +143,7 @@ export default function Landing() {
                   <Key size={32} />
                 </div>
                 <h3 className="text-2xl font-bold mb-4 text-on-surface">Hardware Key Support</h3>
-                <p className="font-body-md text-on-surface-variant">Integrate YubiKey or Titan security keys for physical 2FA protection of your most private entries.</p>
+                <p className="font-body-md text-on-surface-variant">Use security keys for extra protection of your private diary entries.</p>
               </div>
             </div>
             <div className="glass-panel glass-panel-hover flex flex-col justify-between rounded-3xl border border-white/10 p-6 transition-all hover:scale-[1.02] sm:p-10">
@@ -179,7 +179,7 @@ export default function Landing() {
             <div className="relative z-10">
               <h2 className="mb-6 text-3xl font-extrabold tracking-tight text-primary sm:mb-8 sm:text-4xl md:text-[48px]">Your Thoughts Are Yours Alone.</h2>
               <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-on-surface-variant sm:mb-12 sm:text-lg md:text-xl">
-                Join 150,000+ security professionals who trust CipherDiary for their daily records. Secure your digital legacy today.
+                Join 150,000+ security professionals who trust Cipher Diary for their daily records. Secure your digital legacy today.
               </p>
               <div className="flex justify-center">
                 <button 
