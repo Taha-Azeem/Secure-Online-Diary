@@ -271,7 +271,7 @@ export default function Navbar() {
             <ShieldCheck size={20} />
           </div>
           <div className="min-w-0">
-            <div className="truncate text-lg font-black tracking-tight text-on-surface md:text-xl">CipherDiary</div>
+            <div className="truncate text-lg font-black tracking-tight text-on-surface md:text-xl">Cipher Diary</div>
             <div className="hidden text-[10px] font-black uppercase tracking-[0.24em] text-on-surface-variant sm:block">
               Secure Journaling Platform
             </div>
