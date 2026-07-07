@@ -55,7 +55,7 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
               </span>
             </div>
             <p className="text-xs text-on-surface-variant/70">
-              © 2026 CipherDiary Secure Systems. All rights reserved.
+              © BY Taha Azeem. All rights reserved.
             </p>
           </div>
 
@@ -78,7 +78,7 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-[11px] text-on-surface-variant/60">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-bold text-on-surface-variant/40 uppercase tracking-wider text-[9px]">Vault Protocol:</span>
-            {['Zero-Knowledge', 'TLS 1.3', 'PBKDF2 Keys', 'Open Audit'].map((badge) => (
+            {['Zero-Knowledge', 'PBKDF2 Keys'].map((badge) => (
               <span key={badge} className="flex items-center gap-1">
                 <span className="h-1 w-1 rounded-full bg-cyan-500" />
                 {badge}
@@ -88,9 +88,9 @@ export function AppFooter({ withSidebarOffset = false }: { withSidebarOffset?: b
 
           <div className="flex items-center gap-4">
             {[
-              { icon: Github, href: 'https://github.com', label: 'GitHub' },
-              { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-              { icon: Mail, href: 'mailto:contact@cipherdiary.com', label: 'Email' },
+              { icon: Github, href: 'https://github.com/Taha-Azeem', label: 'GitHub' },
+              { icon: Twitter, href: 'https://x.com/Taha_Azeem_', label: 'Twitter' },
+              { icon: Mail, href: 'mailto:tahaazeem1218@gmail.com', label: 'Email' },
             ].map(({ icon: Icon, href, label }) => (
               <a
                 key={label}
