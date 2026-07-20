@@ -40,11 +40,6 @@ The application is automatically deployed to GitHub Pages. Access it here:
    npm run build
    ```
 
-## Deployment
-This project uses GitHub Actions for automated deployment to GitHub Pages. Every push to the `main` branch automatically:
-1. Installs dependencies
-2. Builds the React application
-3. Deploys to GitHub Pages
 
 The deployment workflow is defined in `.github/workflows/deploy.yml`.
 
